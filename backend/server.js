@@ -147,6 +147,111 @@ async function initDb() {
   saveDb();
 
   console.log('✅ Database initialized at:', DB_PATH);
+
+  // Seed example data if database is empty
+  seedExampleData();
+}
+
+// Seed example copies
+function seedExampleData() {
+  const existing = getOne('SELECT COUNT(*) as count FROM copies');
+  if (existing?.count > 0) {
+    console.log('📦 Database has data, skipping seed');
+    return;
+  }
+
+  console.log('🌱 Seeding example data...');
+
+  const examples = [
+    {
+      id: 'polymarket-trader',
+      name: 'Polymarket Trader',
+      description: 'Automated trading bot for Polymarket prediction markets. Monitors odds changes and executes trades.',
+      author: 'CryptoTrader',
+      version: '1.0.0',
+      category: 'financial',
+      skills: JSON.stringify(['trading', 'monitoring', 'automation']),
+      tags: JSON.stringify(['crypto', 'prediction-market', 'trading']),
+      features: JSON.stringify(['Auto-odds monitoring', 'Trade execution', 'Profit tracking']),
+      files: JSON.stringify({
+        'SKILL.md': '# Polymarket Trading Skill\n\nMonitors prediction markets for arbitrage opportunities.',
+        'SOUL.md': '# Trader Personality\n\nFocus on data-driven decisions and risk management.'
+      })
+    },
+    {
+      id: 'frontend-developer',
+      name: 'Frontend Developer',
+      description: 'Complete frontend development environment with React, Vue, and modern tools.',
+      author: 'DevMaster',
+      version: '1.2.0',
+      category: 'frontend-dev',
+      skills: JSON.stringify(['react', 'vue', 'css', 'typescript']),
+      tags: JSON.stringify(['frontend', 'web-dev', 'react']),
+      features: JSON.stringify(['VS Code setup', 'ESLint config', 'Git workflow']),
+      files: JSON.stringify({
+        'SKILL.md': '# Frontend Skills\n\nReact, Vue, CSS architecture.'
+      })
+    },
+    {
+      id: 'productivity-assistant',
+      name: 'Productivity Assistant',
+      description: 'AI-powered personal assistant for daily task management and scheduling.',
+      author: 'ProductivityGuru',
+      version: '2.0.0',
+      category: 'productivity',
+      skills: JSON.stringify(['task-management', 'calendar', 'automation']),
+      tags: JSON.stringify(['productivity', 'tasks', 'schedule']),
+      features: JSON.stringify(['Auto-scheduling', 'Task prioritization', 'Meeting prep']),
+      files: JSON.stringify({
+        'SKILL.md': '# Productivity Skills\n\nTask management and scheduling.'
+      })
+    },
+    {
+      id: 'content-creator',
+      name: 'Content Creator',
+      description: 'Professional content creation workflow for blogs, videos, and social media.',
+      author: 'CreativePro',
+      version: '1.5.0',
+      category: 'content',
+      skills: JSON.stringify(['writing', 'video-editing', 'seo']),
+      tags: JSON.stringify(['content', 'marketing', 'social']),
+      features: JSON.stringify(['Blog templates', 'Video workflow', 'SEO optimization']),
+      files: JSON.stringify({
+        'SKILL.md': '# Content Creation Skills\n\nWriting, editing, and SEO.'
+      })
+    },
+    {
+      id: 'research-assistant',
+      name: 'Research Assistant',
+      description: 'AI agent for academic research, paper analysis, and literature review.',
+      author: 'ResearchLab',
+      version: '1.0.0',
+      category: 'research',
+      skills: JSON.stringify(['research', 'analysis', 'writing']),
+      tags: JSON.stringify(['academic', 'research', 'analysis']),
+      features: JSON.stringify(['Paper summarization', 'Citation management', 'Literature mapping']),
+      files: JSON.stringify({
+        'SKILL.md': '# Research Skills\n\nAcademic research and analysis.'
+      })
+    }
+  ];
+
+  for (const ex of examples) {
+    try {
+      db.run(`
+        INSERT INTO copies (id, user_id, name, description, author, version, category, skills, tags, features, files)
+        VALUES (?, 'seed', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        ex.id, ex.name, ex.description, ex.author, ex.version, ex.category,
+        ex.skills, ex.tags, ex.features, ex.files
+      ]);
+    } catch (e) {
+      // Ignore duplicate errors
+    }
+  }
+
+  saveDb();
+  console.log('🌱 Example data seeded!');
 }
 
 // Save database to file
