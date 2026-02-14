@@ -14,85 +14,43 @@ NC='\033[0m'
 
 echo -e "${GREEN}🦞 Installing ClawFactory CLI...${NC}"
 
-# Detect OS
-OS="$(uname -s)"
-case "$OS" in
-    Darwin*)
-        PLATFORM="darwin"
-        ;;
-    Linux*)
-        PLATFORM="linux"
-        ;;
-    *)
-        echo -e "${RED}Unsupported OS: $OS${NC}"
-        exit 1
-        ;;
-esac
+# Check for Node.js
+if ! command -v node &> /dev/null; then
+    echo -e "${RED}Node.js is not installed.${NC}"
+    echo -e "${YELLOW}Please install Node.js first: https://nodejs.org/${NC}"
+    exit 1
+fi
 
-# Detect architecture
-ARCH="$(uname -m)"
-case "$ARCH" in
-    x86_64)
-        ARCH="x86_64"
-        ;;
-    arm64|aarch64)
-        ARCH="arm64"
-        ;;
-    *)
-        echo -e "${RED}Unsupported architecture: $ARCH${NC}"
-        exit 1
-        ;;
-esac
+echo -e "${YELLOW}Node.js version: $(node -v)${NC}"
 
 # Create install directory
 INSTALL_DIR="${HOME}/.clawfactory/bin"
 mkdir -p "$INSTALL_DIR"
 
-# Download binary
-BINARY_URL="https://github.com/mdscolour/clawfactory/releases/latest/download/clawfactory-${PLATFORM}-${ARCH}"
-BINARY_PATH="${INSTALL_DIR}/clawfactory"
+# Download CLI script
+CLI_URL="https://raw.githubusercontent.com/mdscolour/clawfactory/main/cli.js"
+CLI_PATH="${INSTALL_DIR}/clawfactory"
 
-echo -e "${YELLOW}Downloading from ${BINARY_URL}...${NC}"
+echo -e "${YELLOW}Downloading ClawFactory CLI...${NC}"
 
 if command -v curl &> /dev/null; then
-    curl -L -o "$BINARY_PATH" "$BINARY_URL" 2>/dev/null
+    curl -sL -o "$CLI_PATH" "$CLI_URL"
 elif command -v wget &> /dev/null; then
-    wget -O "$BINARY_PATH" "$BINARY_URL" 2>/dev/null
+    wget -q -O "$CLI_PATH" "$CLI_URL"
 else
     echo -e "${RED}Please install curl or wget first${NC}"
     exit 1
 fi
 
-chmod +x "$BINARY_PATH"
+chmod +x "$CLI_PATH"
 
 # Add to PATH (bash/zsh)
 BASHRC="${HOME}/.bashrc"
 ZSHRC="${HOME}/.zshrc"
 
 PATH_EXPORT="export PATH=\"${INSTALL_DIR}:\$PATH\""
-ADDED_BASH=false
-ADDED_ZSH=false
 
-if [ -f "$BASHRC" ]; then
-    if ! grep -q "clawfactory/bin" "$BASHRC" 2>/dev/null; then
-        echo "" >> "$BASHRC"
-        echo "# ClawFactory CLI" >> "$BASHRC"
-        echo "$PATH_EXPORT" >> "$BASHRC"
-        ADDED_BASH=true
-    fi
-fi
-
-if [ -f "$ZSHRC" ]; then
-    if ! grep -q "clawfactory/bin" "$ZSHRC" 2>/dev/null; then
-        echo "" >> "$ZSHRC"
-        echo "# ClawFactory CLI" >> "$ZSHRC"
-        echo "$PATH_EXPORT" >> "$ZSHRC"
-        ADDED_ZSH=true
-    fi
-fi
-
-# Also check and update existing shell config
-for RC_FILE in "$HOME/.bash_profile" "$HOME/.profile"; do
+for RC_FILE in "$BASHRC" "$ZSHRC" "$HOME/.bash_profile" "$HOME/.profile"; do
     if [ -f "$RC_FILE" ]; then
         if ! grep -q "clawfactory/bin" "$RC_FILE" 2>/dev/null; then
             echo "" >> "$RC_FILE"
@@ -114,4 +72,6 @@ echo -e "${YELLOW}Usage:${NC}"
 echo -e "  ${GREEN}clawfactory list${NC}         - List all copies"
 echo -e "  ${GREEN}clawfactory search <query>${NC} - Search copies"
 echo -e "  ${GREEN}clawfactory install <id>${NC}  - Install a copy"
+echo ""
+echo -e "${YELLOW}Website:${NC} https://clawhub.com"
 echo ""
