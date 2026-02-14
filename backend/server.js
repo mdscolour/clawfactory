@@ -589,10 +589,10 @@ const routes = {
       SELECT id, version, changelog, created_at
       FROM versions
       WHERE copy_id = ?
-      ORDER BY created_at).all(copyId);
+      ORDER BY created_at DESC
+    `).all(copyId);
 
-    return versions DESC
-    `;
+    return versions;
   },
 
   // Search copies
