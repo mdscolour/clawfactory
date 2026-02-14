@@ -67,7 +67,7 @@ echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━�
 echo -e "${YELLOW}🔑 IMPORTANT: Run this command now:${NC}"
 echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
-echo -e "${GREEN}  export PATH="~/.clawfactory/bin:\$PATH"${NC}"
+echo -e "${GREEN}  export PATH=\"~/.clawfactory/bin:\$PATH\"${NC}"
 echo ""
 echo -e "${YELLOW}Or restart your terminal.${NC}"
 echo ""
