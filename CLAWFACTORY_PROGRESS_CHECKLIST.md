@@ -78,4 +78,10 @@
 
 Phase 5 COMPLETED! 🎉
 
-Last Updated: 2026-02-14 (AI API Page + Complete Snapshot)
+Last Updated: 2026-02-14 (Railway deployment + Seed data)
+
+## 🔧 Recent Fixes (2026-02-14)
+- ✅ Railway port configuration (PORT=8080)
+- ✅ Static file serving (backend serves frontend)
+- ✅ Same-domain API configuration
+- ✅ Seed data (auto-add example copies on empty DB)

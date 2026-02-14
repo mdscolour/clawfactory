@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # ClawFactory CLI Installation Script
-# Usage: curl -sL https://raw.githubusercontent.com/你的用户名/clawfactory/main/install.sh | bash
+# Usage: curl -sL https://raw.githubusercontent.com/mdscolour/clawfactory/main/install.sh | bash
 #
 
 set -e
@@ -49,7 +49,8 @@ INSTALL_DIR="${HOME}/.clawfactory/bin"
 mkdir -p "$INSTALL_DIR"
 
 # Download binary
-BINARY_URL="https://github.com/你的用户名/clawfactory/releases/latest/download/clawfactory-${PLATFORM}-${ARCH}"
+BINARY_URL="https://github.com/mdscolour/clawfactory/releases/latest/download/clawfactory-${PLATFORM}-${ARCH}"
+BINARY_PATH="${INSTALL_DIR}/clawfactory"
 
 echo -e "${YELLOW}Downloading from ${BINARY_URL}...${NC}"
 

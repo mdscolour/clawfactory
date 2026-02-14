@@ -1,14 +1,14 @@
 class Clawfactory < Formula
   desc "OpenClaw Copy Registry CLI - Install and share OpenClaw configurations"
-  homepage "https://github.com/你的用户名/clawfactory"
-  url "https://github.com/你的用户名/clawfactory/releases/latest/download/clawfactory-darwin-x86_64"
+  homepage "https://github.com/mdscolour/clawfactory"
+  url "https://github.com/mdscolour/clawfactory/releases/download/v1.0.0/clawfactory-darwin-x86_64.tar.gz"
   version "1.0.0"
-  sha256 "your_binary_sha256_here"
+  sha256 "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
-  depends_on "curl" => :run
+  depends_on :curl => :run
 
   def install
-    bin.install "clawfactory-darwin-x86_64" => "clawfactory"
+    bin.install "clawfactory" => "clawfactory"
   end
 
   def caveats

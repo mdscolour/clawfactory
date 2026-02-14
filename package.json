@@ -1,21 +1,25 @@
 {
   "name": "clawfactory",
-  "version": "0.1.0",
-  "description": "OpenClaw Copy Registry - Share and discover pre-configured OpenClaw configurations",
-  "main": "index.html",
+  "version": "1.0.0",
+  "description": "OpenClaw Copy Registry CLI - Install and share OpenClaw configurations",
+  "main": "cli.js",
+  "bin": {
+    "clawfactory": "./cli.js"
+  },
   "scripts": {
     "start": "cd backend && node server.js",
     "dev": "python3 -m http.server 8080",
+    "cli": "node cli.js",
     "preview": "open index.html"
   },
   "keywords": [
     "openclaw",
-    "clodbdbot",
-    "configuration",
-    "registry",
-    "ai-agents"
+    "clawfactory",
+    "ai-agents",
+    "cli",
+    "registry"
   ],
   "author": "Kunhe",
   "license": "MIT",
-  "homepage": "https://github.com/clawfactory/clawfactory"
+  "homepage": "https://github.com/mdscolour/clawfactory"
 }
