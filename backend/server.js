@@ -628,7 +628,21 @@ const routes = {
 // HTTP Server
 import http from 'http';
 
+const FRONTEND_DIR = path.join(__dirname, '..');
+
+const mimeTypes = {
+  '.html': 'text/html',
+  '.js': 'application/javascript',
+  '.css': 'text/css',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon'
+};
+
 const httpServer = http.createServer((req, res) => {
+  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -640,9 +654,29 @@ const httpServer = http.createServer((req, res) => {
   }
 
   const url = new URL(req.url, `http://localhost:${PORT}`);
-  const path = url.pathname;
+  const pathName = url.pathname;
   const method = req.method;
 
+  // Serve static files (root index.html for SPA)
+  if (method === 'GET' && !pathName.startsWith('/api') && !pathName.startsWith('/.')) {
+    let filePath = pathName === '/' ? '/index.html' : pathName;
+    const fullPath = path.join(FRONTEND_DIR, filePath);
+    const ext = path.extname(fullPath);
+    const contentType = mimeTypes[ext] || 'application/octet-stream';
+
+    try {
+      if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+        const content = fs.readFileSync(fullPath);
+        res.writeHead(200, { 'Content-Type': contentType });
+        res.end(content);
+        return;
+      }
+    } catch (e) {
+      // File not found, continue to API
+    }
+  }
+
+  // API Routes
   let matchedRoute = null;
   let params = {};
 
@@ -652,7 +686,7 @@ const httpServer = http.createServer((req, res) => {
 
     const regexPath = routePath.replace(/:id/g, '([^/]+)').replace(/\//g, '\\/');
     const regex = new RegExp(`^${regexPath}$`);
-    const match = path.match(regex);
+    const match = pathName.match(regex);
     
     if (match) {
       matchedRoute = route;

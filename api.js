@@ -6,20 +6,19 @@
 
 const API = {
   baseUrl: '',
-  useBackend: false,
+  useBackend: true,  // Always use backend when served from same domain
   token: null,
 
   init() {
-    if (typeof window !== 'undefined' && window.CLAWFACTORY_CONFIG) {
-      this.baseUrl = window.CLAWFACTORY_CONFIG.API_URL || '';
-      this.useBackend = window.CLAWFACTORY_CONFIG.FEATURES?.useBackend && this.baseUrl;
-      
-      // Load saved token
-      if (typeof localStorage !== 'undefined') {
-        this.token = localStorage.getItem('clawfactory_token');
-      }
+    // When served from same domain as backend, use relative paths
+    this.useBackend = true;
+    this.baseUrl = '';
+    
+    // Load saved token
+    if (typeof localStorage !== 'undefined') {
+      this.token = localStorage.getItem('clawfactory_token');
     }
-    console.log('[API] Initialized - Backend mode:', this.useBackend ? 'ON' : 'OFF');
+    console.log('[API] Initialized - Backend mode: ON (same domain)');
   },
 
   setToken(token) {
