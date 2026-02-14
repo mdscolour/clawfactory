@@ -20,13 +20,13 @@
 - [x] Add copy analytics (view count, install count)
 - [x] Dark/Light theme toggle
 - [x] **CLI Tools** - install.sh, uninstall.sh, cli.js
-- [x] **Homebrew Tap** - mdscolour/homebrew-clawfactory
-
-### Pending
-- [ ] **NPM Publish** - Waiting for 2FA authentication
+- [x] **NPM Package** - clawfactory@1.0.0 published
 
 ### ✅ COMPLETED (Just Now!)
 - [x] **NPM Package Published!** - clawfactory@1.0.0
+
+### Not Implemented
+- [x] **Homebrew** - Skipped (requires separate tap repo, npm is sufficient)
 
 ### Future Ideas
 - [ ] AI-powered copy recommendations
