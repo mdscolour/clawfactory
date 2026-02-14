@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  clawfactory-backend:
+    build: .
+    container_name: clawfactory-backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - PORT=3000
+      - DATA_DIR=/app/data
+    restart: unless-stopped

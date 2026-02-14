@@ -1,0 +1,24 @@
+{
+  "name": "clawfactory-backend",
+  "version": "1.0.0",
+  "description": "Self-hosted backend for ClawFactory - OpenClaw Copy Registry",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "openclaw",
+    "clawfactory",
+    "ai-agent",
+    "backend",
+    "sqlite"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^9.4.3",
+    "ws": "^8.16.0"
+  }
+}

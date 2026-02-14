@@ -1,0 +1,25 @@
+{
+  "id": "polymarket-trader",
+  "name": "Polymarket Trader",
+  "description": "Automated trading bot for Polymarket prediction markets with real-time monitoring and PnL tracking.",
+  "hasMemory": true,
+  "author": "Kunhe",
+  "version": "1.0.0",
+  "category": "trading",
+  "skills": ["polymarket", "trading", "monitoring"],
+  "installCommand": "clawfactory install polymarket-trader",
+  "features": [
+    "Real-time trade monitoring",
+    "Automated PnL calculation",
+    "Strategy B execution",
+    "Memory-enhanced decision making"
+  ],
+  "preview": {
+    "SOUL.md": "Technical operator focused on trading automation and market analysis.",
+    "AGENTS.md": "Specialized agent for Polymarket trading operations.",
+    "HEARTBEAT.md": "Routine monitor checks Polymarket bot every 1 minute."
+  },
+  "tags": ["trading", "polymarket", "automation", "finance"],
+  "repository": "https://github.com/clawfactory/copies/polymarket-trader",
+  "license": "MIT"
+}

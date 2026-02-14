@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ClawFactory Copy",
+  "description": "Schema for a ClawFactory copy configuration",
+  "type": "object",
+  "required": ["id", "name", "description", "author", "version", "skills", "features"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Unique identifier (lowercase, hyphens only)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the copy"
+    },
+    "hasMemory": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this copy includes long-term memory"
+    },
+    "author": {
+      "type": "string",
+      "description": "Author name or username"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$",
+      "description": "Semantic version number"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["trading", "development", "productivity", "automation", "other"],
+      "default": "other",
+      "description": "Category for filtering"
+    },
+    "skills": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "List of skill IDs included in this copy"
+    },
+    "installCommand": {
+      "type": "string",
+      "description": "CLI installation command"
+    },
+    "features": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "List of features"
+    },
+    "preview": {
+      "type": "object",
+      "description": "Preview of configuration files",
+      "additionalProperties": { "type": "string" }
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Searchable tags"
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to homepage or documentation"
+    },
+    "repository": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to source repository"
+    },
+    "license": {
+      "type": "string",
+      "description": "License identifier (e.g., MIT, Apache-2.0)"
+    }
+  },
+  "additionalProperties": false
+}

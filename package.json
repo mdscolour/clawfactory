@@ -1,0 +1,20 @@
+{
+  "name": "clawfactory",
+  "version": "0.1.0",
+  "description": "OpenClaw Copy Registry - Share and discover pre-configured OpenClaw configurations",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python3 -m http.server 8080",
+    "preview": "open index.html"
+  },
+  "keywords": [
+    "openclaw",
+    "clodbdbot",
+    "configuration",
+    "registry",
+    "ai-agents"
+  ],
+  "author": "Kunhe",
+  "license": "MIT",
+  "homepage": "https://github.com/clawfactory/clawfactory"
+}
