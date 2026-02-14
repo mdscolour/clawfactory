@@ -19,6 +19,14 @@
 - [x] Implement copy forking
 - [x] Add copy analytics (view count, install count)
 - [x] Dark/Light theme toggle
+- [x] **CLI Tools** - install.sh, uninstall.sh, cli.js
+- [x] **Homebrew Tap** - mdscolour/homebrew-clawfactory
+
+### Pending
+- [ ] **NPM Publish** - Waiting for 2FA authentication
+
+### ✅ COMPLETED (Just Now!)
+- [x] **NPM Package Published!** - clawfactory@1.0.0
 
 ### Future Ideas
 - [ ] AI-powered copy recommendations
@@ -78,7 +86,15 @@
 
 Phase 5 COMPLETED! 🎉
 
-Last Updated: 2026-02-14 (Railway deployment + Seed data)
+Last Updated: 2026-02-14 (CLI tools + Railway deployment)
+
+## 🔧 Recent Fixes (2026-02-14)
+- ✅ CLI tools (install.sh, uninstall.sh, cli.js)
+- ✅ Homebrew formula
+- ✅ Railway port configuration (PORT=8080)
+- ✅ Static file serving (backend serves frontend)
+- ✅ Seed data (auto-add example copies)
+- ✅ Admin API (stats, delete)
 
 ## 🔧 Recent Fixes (2026-02-14)
 - ✅ Railway port configuration (PORT=8080)
