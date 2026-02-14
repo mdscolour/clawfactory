@@ -727,6 +727,36 @@ const routes = {
       copies = getAll('SELECT * FROM copies WHERE user_id = ? AND is_public = 1 ORDER BY created_at DESC', [req.params.id]);
     }
     return copies.map(c => ({ ...c, skills: parseJson(c.skills), tags: parseJson(c.tags) }));
+  },
+
+  // ========== ADMIN ROUTES ==========
+  'GET /api/admin/copies': () => {
+    const copies = getAll('SELECT id, name, author, version, category, rating_average, install_count, is_public, created_at FROM copies ORDER BY created_at DESC');
+    return { copies, count: copies.length };
+  },
+
+  'DELETE /api/admin/copies/:id': (req) => {
+    const copyId = req.params.id;
+    run('DELETE FROM copies WHERE id = ?', [copyId]);
+    run('DELETE FROM ratings WHERE copy_id = ?', [copyId]);
+    run('DELETE FROM comments WHERE copy_id = ?', [copyId]);
+    run('DELETE FROM stars WHERE copy_id = ?', [copyId]);
+    run('DELETE FROM forks WHERE original_copy_id = ? OR forked_copy_id = ?', [copyId, copyId]);
+    return { success: true, deleted: copyId };
+  },
+
+  'GET /api/admin/stats': () => {
+    const totalCopies = getOne('SELECT COUNT(*) as count FROM copies')?.count || 0;
+    const totalUsers = getOne('SELECT COUNT(*) as count FROM users')?.count || 0;
+    const totalInstalls = getOne('SELECT SUM(install_count) as count FROM copies')?.count || 0;
+    const publicCopies = getOne('SELECT COUNT(*) as count FROM copies WHERE is_public = 1')?.count || 0;
+    return {
+      totalCopies,
+      totalUsers,
+      totalInstalls,
+      publicCopies,
+      privateCopies: totalCopies - publicCopies
+    };
   }
 };
 

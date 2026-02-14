@@ -127,11 +127,15 @@ ${COLORS.green}Commands:${COLORS.reset}
   install <copy-id>       Install a copy to your system
   info <copy-id>          Show copy details
   categories              List all categories
+  delete <copy-id>       Delete a copy (admin)
+  stats                   Show statistics
 
 ${COLORS.green}Examples:${COLORS.reset}
   clawfactory list
   clawfactory search trading
   clawfactory install polymarket-trader
+  clawfactory delete old-copy
+  clawfactory stats
 
 ${COLORS.green}Environment:${COLORS.reset}
   CLAWFACTORY_API         API server URL (default: https://clawfactory.ai)
@@ -169,6 +173,27 @@ async function categories() {
   });
 }
 
+async function del(copyId) {
+  if (!copyId) error('Usage: clawfactory delete <copy-id>');
+  log(`🗑️  Deleting "${copyId}"...`, 'cyan');
+  try {
+    await fetchJson(`${API_BASE}/api/admin/copies/${copyId}`, { method: 'DELETE' });
+    log(`✅ Deleted "${copyId}"`, 'green');
+  } catch (e) {
+    error(`Failed to delete: ${e.message}`);
+  }
+}
+
+async function stats() {
+  const s = await fetchJson(`${API_BASE}/api/admin/stats`);
+  log('\n📊 Statistics:\n', 'green');
+  console.log(`  Total Copies: ${s.totalCopies}`);
+  console.log(`  Public: ${s.publicCopies}`);
+  console.log(`  Private: ${s.privateCopies}`);
+  console.log(`  Total Users: ${s.totalUsers}`);
+  console.log(`  Total Installs: ${s.totalInstalls}`);
+}
+
 // Main
 const args = process.argv.slice(2);
 const cmd = args[0] || 'help';
@@ -194,6 +219,13 @@ switch (cmd) {
   case 'categories':
   case 'cats':
     categories();
+    break;
+  case 'delete':
+  case 'rm':
+    del(args[1]);
+    break;
+  case 'stats':
+    stats();
     break;
   case 'help':
   case '--help':
