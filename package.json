@@ -7,10 +7,7 @@
     "clawfactory": "./cli.js"
   },
   "scripts": {
-    "start": "cd backend && node server.js",
-    "dev": "python3 -m http.server 8080",
-    "cli": "node cli.js",
-    "preview": "open index.html"
+    "cli": "node cli.js"
   },
   "keywords": [
     "openclaw",
@@ -21,5 +18,9 @@
   ],
   "author": "Kunhe",
   "license": "MIT",
-  "homepage": "https://github.com/mdscolour/clawfactory"
+  "homepage": "https://github.com/mdscolour/clawfactory",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mdscolour/clawfactory"
+  }
 }
