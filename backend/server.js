@@ -366,7 +366,7 @@ const httpServer = http.createServer((req, res) => {
   for (const route of Object.keys(routes)) {
     const [routeMethod, routePath] = route.split(' ');
     if (method !== routeMethod) continue;
-    const regexPath = routePath.replace(/:id/g, '([^/]+)').replace(/:username/g, '([^/]+)').replace(/\//g, '\\/');
+    const regexPath = routePath.replace(/:id/g, '([^/]+)').replace(/:username/g, '([^/]+)').replace(/:copySlug/g, '([^/]+)').replace(/\//g, '\\/');
     const match = pathName.match(new RegExp(`^${regexPath}$`));
     if (match) {
       matchedRoute = route;

@@ -131,3 +131,20 @@ Last Updated: 2026-02-14 (CLI tools + Railway deployment)
 - User pages API
 
 Last Updated: 2026-02-15
+
+## 🚀 Phase 6 Continuation (2026-02-15)
+
+### ✅ Added This Session
+- User page URL: `/{username}/{copy-slug}`
+- Auto-version on upload (patch +1)
+- Hash-based routing for SPA
+- User copy detail page
+- Copy owner link from detail page
+
+### Remaining
+- Google OAuth flow
+- CLI upload with version selection
+- Frontend copy detail modal enhancement
+- 5 seed copies display fix
+
+Last Updated: 2026-02-15
