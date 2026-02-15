@@ -419,4 +419,18 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('[App] Starting...');
     init();
   }, 100);
+  
+  // FIX: Add click handlers to nav links
+  document.querySelectorAll('.nav-link[data-page]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const page = link.dataset.page;
+      if (page) {
+        switchPage(page);
+        console.log('[App] Nav click:', page);
+      }
+    });
+  });
+  
+  console.log('[App] Nav click handlers added');
 });
