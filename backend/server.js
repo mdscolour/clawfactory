@@ -324,7 +324,7 @@ const routes = {
 
   'GET /api/categories': () => getAll('SELECT category, COUNT(*) as count FROM copies WHERE is_public = 1 GROUP BY category'),
 
-  'GET /api/featured': () => getAll('SELECT * FROM copies WHERE is_public = 1 AND rating_count > 0 ORDER BY rating_average DESC LIMIT 4').map(c => ({ ...c, skills: parseJson(c.skills) })),
+  'GET /api/featured': () => getAll('SELECT * FROM copies WHERE is_public = 1 ORDER BY install_count DESC, rating_average DESC LIMIT 4').map(c => ({ ...c, skills: parseJson(c.skills) })),
 
   'GET /api/admin/stats': () => ({
     totalCopies: getOne('SELECT COUNT(*) as count FROM copies')?.count || 0,
