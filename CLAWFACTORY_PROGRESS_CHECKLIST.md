@@ -148,3 +148,120 @@ Last Updated: 2026-02-15
 - 5 seed copies display fix
 
 Last Updated: 2026-02-15
+
+## 🚀 Phase 6 Continuation (2026-02-15 Evening)
+
+### ✅ Completed & Tested
+- User registration/login
+- User page URL: `/{username}/{copy-slug}` ✅
+- Auto-version on upload (1.0.0 → 1.0.1) ✅
+- Hash-based SPA routing ✅
+- API tested:
+  - POST /api/auth/register ✅
+  - POST /api/auth/login ✅
+  - GET /api/users/:username ✅
+  - GET /api/users/:username/:copySlug ✅
+  - POST /api/copies (auto-version) ✅
+
+### Commands Working
+- `npx clawfactory login/register/upload` CLI ready
+
+### Remaining
+- Google OAuth flow
+- CLI upload with version selection
+- Frontend copy detail enhancement
+- Railway redeploy
+
+Last Updated: 2026-02-15
+
+## 🚀 Phase 6 Continuation (2026-02-15 Night)
+
+### ✅ Added
+- CLI upload: now shows existing copies and allows updating them
+- Auto-increments version on update (1.0.0 → 1.0.1)
+- Better URL display: `/#/username/copy-id`
+
+### Still Needed
+- Google OAuth (needs Google Cloud setup)
+- Frontend copy detail page polish
+- Railway auto-deploy (GitHub push already triggers)
+
+Last Updated: 2026-02-15
+
+## 🚀 Phase 6 Continuation (2026-02-15 Late Night)
+
+### ✅ Fixed
+- Featured API: removed `rating_count > 0` requirement so seed copies show
+- Frontend: added console logs to debug featured copies loading
+- Frontend: fixed init timing with DOMContentLoaded
+
+### 🔄 Pending Railway Deploy
+- Check console logs at https://clawfactory.ai
+- Expected: Featured copies should appear on homepage
+
+Last Updated: 2026-02-15
+
+## 🚀 Phase 6 Continuation (2026-02-15 Night - Deployment Issues)
+
+### ✅ Completed
+- User auth (register/login)
+- User pages: `/{username}/{copy-slug}`
+- CLI upload with update existing copy
+- Auto-version increment
+- Featured API fix
+- Console logs for debugging
+
+### 🚨 Blocked: Railway Deployment
+- Last deployment: 00:46:27 (6+ hours ago)
+- Latest commits not deployed
+- GitHub shows latest commit: `77b2e16` (Trigger Railway deploy)
+- Possible causes:
+  - GitHub webhook not configured for Railway
+  - Railway project issues
+
+### Manual Fix Options
+1. Railway dashboard → manually trigger deploy
+2. Railway CLI: `railway login` then `railway deploy`
+3. Or wait for webhook to work
+
+### What's Working
+- API: clawfactory.ai/api/copies ✅
+- API: clawfactory.ai/api/featured ✅  
+- API: clawfactory.ai/api/users/:username ✅
+- 5 seed copies visible via API ✅
+
+### What's Not Visible (needs Railway update)
+- Homepage popular copies section
+- User pages on frontend
+- Updated CLI package
+
+Last Updated: 2026-02-15 02:13
+
+## 🚀 Phase 6 Continuation (2026-02-15 Late Night - Documentation)
+
+### ✅ Completed
+- README updated with full feature list
+- API endpoints documented
+- CLI commands documented
+- Local development instructions
+- Project structure documented
+
+### 🚨 Railway Deployment (Still Blocked)
+- Last deployment: 00:46:27 (7+ hours ago)
+- Multiple commits pushed but not deployed
+- Need Railway dashboard manual intervention
+
+### 📋 What Works Locally
+- All API endpoints
+- User auth (register/login)
+- Copy CRUD
+- User pages
+- CLI upload with version increment
+
+### 📋 When Railway Fixed
+- Frontend will show featured copies
+- User pages will work online
+- CLI package will have latest features
+
+Last Updated: 2026-02-15 02:45
+Railway status check: Sun Feb 15 02:45:01 CET 2026

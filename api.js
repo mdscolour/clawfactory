@@ -96,6 +96,22 @@ const API = {
     return result;
   },
 
+  async googleAuth(googleId, email, name) {
+    const result = await this.request('/api/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ googleId, email, name })
+    });
+    
+    if (result.success && result.token) {
+      this.setToken(result.token);
+      currentUser = result.user;
+      updateAuthUI();
+      showNotification('Logged in with Google!');
+      switchPage('home');
+    }
+    return result;
+  },
+
   async getMe() {
     return await this.request('/api/auth/me');
   },

@@ -361,6 +361,53 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
   }
 });
 
+// Google Login (requires Google OAuth setup)
+async function googleLogin() {
+  // Check if Google Identity Services is loaded
+  if (typeof google !== 'undefined' && google.accounts) {
+    // Use Google Identity Services
+    google.accounts.id.initialize({
+      client_id: window.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID',
+      callback: handleGoogleResponse
+    });
+    google.accounts.id.renderButton(
+      document.querySelector('.btn-google'),
+      { theme: 'outline', size: 'large' }
+    );
+    google.accounts.id.prompt();
+  } else {
+    // Fallback: manual token entry for testing
+    const token = prompt('Enter Google ID token (for testing):');
+    if (token) {
+      // In production, verify token with Google
+      // For now, use mock login
+      await mockGoogleLogin(token);
+    }
+  }
+}
+
+async function handleGoogleResponse(response) {
+  await mockGoogleLogin(response.credential);
+}
+
+async function mockGoogleLogin(credential) {
+  // In production, decode and verify JWT
+  // For demo, parse basic claims
+  try {
+    const parts = credential.split('.');
+    if (parts.length !== 3) {
+      // Mock data for testing
+      await API.googleAuth('mock-google-id', 'user@gmail.com', 'Google User');
+      return;
+    }
+    const payload = JSON.parse(atob(parts[1]));
+    await API.googleAuth(payload.sub, payload.email, payload.name);
+  } catch (err) {
+    console.error('Google login error:', err);
+    showNotification('Google login failed');
+  }
+}
+
 // Modal close on overlay click
 document.querySelector('.modal-overlay')?.addEventListener('click', closeModal);
 document.querySelector('.modal-close')?.addEventListener('click', closeModal);

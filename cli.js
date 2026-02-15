@@ -57,6 +57,26 @@ async function login() {
   log(`✅ Logged in as ${username}!`, 'green');
 }
 
+async function googleLogin() {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  
+  const googleId = await new Promise(r => rl.question('Google User ID: ', r));
+  const email = await new Promise(r => rl.question('Email: ', r));
+  const name = await new Promise(r => rl.question('Name: ', r));
+  rl.close();
+
+  log('\nLogging in with Google...', 'cyan');
+  const res = await fetchJson(`${API_BASE}/api/auth/google`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ googleId, email, name })
+  });
+
+  if (res.error) error(res.error);
+  saveToken(res.token);
+  log(`✅ Logged in as ${res.user.username}!`, 'green');
+}
+
 async function register() {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   const username = await new Promise(r => rl.question('Username: ', r));
@@ -275,6 +295,7 @@ ${COLORS.green}Usage:${COLORS.reset}
 
 ${COLORS.green}Commands:${COLORS.reset}
   login                    Login with username/password
+  google                   Login with Google
   register                 Create a new account
   logout                   Log out
   list                     List all public copies
@@ -307,6 +328,7 @@ const cmd = args[0] || 'help';
 
 switch (cmd) {
   case 'login': login(); break;
+  case 'google': googleLogin(); break;
   case 'register': register(); break;
   case 'logout': logout(); break;
   case 'list': case 'ls': list(); break;
