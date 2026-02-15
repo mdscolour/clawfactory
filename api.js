@@ -100,6 +100,15 @@ const API = {
     return await this.request('/api/auth/me');
   },
 
+  // ========== USER API ==========
+  async getUser(username) {
+    return await this.request(`/api/users/${encodeURIComponent(username)}`);
+  },
+
+  async getUserCopy(username, copySlug) {
+    return await this.request(`/api/users/${encodeURIComponent(username)}/${encodeURIComponent(copySlug)}`);
+  },
+
   async getUserCopies(userId) {
     return await this.request(`/api/users/${userId}/copies`);
   },

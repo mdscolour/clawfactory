@@ -202,19 +202,57 @@ const routes = {
     return { user, copies: copies.map(c => ({ ...c, skills: parseJson(c.skills) })) };
   },
 
+  'GET /api/users/:username/:copySlug': (req) => {
+    const { username, copySlug } = req.params;
+    const copy = getOne('SELECT c.*, u.username as owner_username FROM copies c LEFT JOIN users u ON c.user_id = u.id WHERE c.id = ? AND c.username = ?', [copySlug, username]);
+    if (!copy) return { error: 'Copy not found', status: 404 };
+    if (copy.is_private === 1) {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || authHeader !== `Bearer ${copy.user_id}`) return { error: 'Private copy', status: 403 };
+    }
+    return {
+      ...copy,
+      skills: parseJson(copy.skills),
+      tags: parseJson(copy.tags),
+      files: parseJson(copy.files),
+      memory: copy.memory,
+      owner: copy.owner_username
+    };
+  },
+
   'POST /api/copies': (req) => {
-    const { name, description, author, version, category, skills, tags, features, files, memory, user_id, username, is_private } = req.body;
-    const id = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const { name, description, author, version, category, skills, tags, features, files, memory, user_id, username, is_private, copyId } = req.body;
+    // Allow custom copyId or generate from name
+    const id = copyId || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     const existing = getOne('SELECT * FROM copies WHERE id = ?', [id]);
 
     if (existing) {
+      // Update existing - auto increment version
+      let newVersion = version || existing.version;
+      if (version) {
+        // Parse version and increment patch
+        const parts = version.split('.');
+        if (parts.length >= 3) {
+          const patch = parseInt(parts[2]) || 0;
+          newVersion = `${parts[0]}.${parts[1]}.${patch + 1}`;
+        } else {
+          newVersion = `${version}.1`;
+        }
+      } else {
+        // Auto increment patch version if not provided
+        const parts = existing.version.split('.');
+        const patch = parseInt(parts[2]) || 0;
+        newVersion = `${parts[0]}.${parts[1]}.${patch + 1}`;
+      }
+      
       run(`UPDATE copies SET name=?, description=?, author=?, version=?, category=?, skills=?, tags=?, features=?, files=?, memory=?, is_private=?, updated_at=datetime('now') WHERE id=?`,
-        [name, description, author, version || existing.version, category, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_private?1:0, id]);
-      return { success: true, id, isUpdate: true };
+        [name, description, author, newVersion, category, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_private?1:0, id]);
+      return { success: true, id, isUpdate: true, version: newVersion };
     } else {
+      // Insert new
       run(`INSERT INTO copies (id, user_id, username, name, description, author, version, category, skills, tags, features, files, memory, is_private) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [id, user_id||'anonymous', username, name, description, author, version||'1.0.0', category, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_private?1:0]);
-      return { success: true, id, isUpdate: false };
+      return { success: true, id, isUpdate: false, version: version||'1.0.0' };
     }
   },
 

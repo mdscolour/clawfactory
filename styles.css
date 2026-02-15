@@ -1235,3 +1235,70 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* Copy Detail */
+.copy-detail {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.copy-detail .copy-actions {
+  margin-top: 24px;
+  display: flex;
+  gap: 12px;
+}
+
+.copy-detail .copy-meta {
+  display: flex;
+  gap: 16px;
+  margin: 16px 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.copy-detail .copy-skills {
+  margin-top: 16px;
+}
+
+.copy-detail h3 {
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+
+/* Back Link */
+.back-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  display: inline-block;
+}
+
+.back-link:hover {
+  color: var(--primary);
+}
+
+/* Copy Detail Page */
+#userCopyPage .page-header {
+  margin-bottom: 24px;
+}
+
+#userCopyPage .page-header .back-link {
+  margin-bottom: 8px;
+}
+
+#userCopyPage .page-header h1 {
+  font-size: 1.75rem;
+}
+
+/* Owner Link */
+.copy-author a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.copy-author a:hover {
+  text-decoration: underline;
+}

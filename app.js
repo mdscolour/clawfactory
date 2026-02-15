@@ -2,11 +2,103 @@
 // Simplified app with user system and new UI
 
 let currentUser = null;
+let pageHistory = [];
 
 async function init() {
   checkAuth();
   loadFeaturedCopies();
   loadCategories();
+  handleRoute();
+}
+
+// Simple hash-based routing
+function handleRoute() {
+  const hash = window.location.hash.slice(1) || '/';
+  const parts = hash.split('/').filter(Boolean);
+  
+  if (parts.length === 2 && !parts[0].startsWith('page')) {
+    // User copy page: /username/copySlug
+    showUserCopyPage(parts[0], parts[1]);
+  } else if (parts.length === 1 && !parts[0].startsWith('page')) {
+    // User page: /username
+    showUserPage(parts[0]);
+  } else if (hash === '/') {
+    switchPage('home');
+  } else if (hash.startsWith('page=')) {
+    switchPage(hash.replace('page=', ''));
+  }
+}
+
+function navigate(hash) {
+  window.location.hash = hash;
+  handleRoute();
+}
+
+function goBack() {
+  if (pageHistory.length > 0) {
+    const prev = pageHistory.pop();
+    window.location.hash = prev;
+    handleRoute();
+  } else {
+    navigate('/');
+  }
+}
+
+async function showUserPage(username) {
+  pageHistory.push(window.location.hash.slice(1));
+  const data = await API.getUser(username);
+  if (data.error) {
+    showNotification('User not found');
+    navigate('/');
+    return;
+  }
+  
+  document.querySelectorAll('[id$="Page"]').forEach(p => p.style.display = 'none');
+  document.getElementById('userPage').style.display = 'block';
+  document.getElementById('userPageTitle').textContent = `@${username}'s Copies`;
+  
+  const list = document.getElementById('userCopiesList');
+  if (!data.copies?.length) {
+    list.innerHTML = '<p class="empty-message">No public copies yet.</p>';
+    return;
+  }
+  
+  list.innerHTML = data.copies.map(c => renderCopyCard(c)).join('');
+}
+
+async function showUserCopyPage(username, copySlug) {
+  pageHistory.push(window.location.hash.slice(1));
+  const copy = await API.getUserCopy(username, copySlug);
+  if (copy.error) {
+    showNotification('Copy not found');
+    navigate('/');
+    return;
+  }
+  
+  document.querySelectorAll('[id$="Page"]').forEach(p => p.style.display = 'none');
+  document.getElementById('userCopyPage').style.display = 'block';
+  document.getElementById('userCopyTitle').textContent = copy.name;
+  
+  const detail = document.getElementById('userCopyDetail');
+  detail.innerHTML = `
+    <div class="copy-detail">
+      <p class="copy-author">by <a href="#/${username}" onclick="navigate('/${username}')">@${username}</a></p>
+      <p>${copy.description}</p>
+      <div class="copy-meta">
+        <span>⭐ ${copy.rating_average || 0}</span>
+        <span>📦 ${copy.install_count || 0}</span>
+        <span>${copy.category}</span>
+        <span>v${copy.version}</span>
+      </div>
+      <div class="copy-skills">${copy.skills?.join(', ')}</div>
+      <div class="copy-actions">
+        <button class="btn btn-primary" onclick="installCopy('${copy.id}')">Install</button>
+        <button class="btn btn-secondary" onclick="rateCopy('${copy.id}')">Rate</button>
+      </div>
+      <h3>Files</h3>
+      <pre>${Object.keys(copy.files || {}).join('\n')}</pre>
+    </div>
+  `;
 }
 
 function checkAuth() {
