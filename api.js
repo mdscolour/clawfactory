@@ -6,19 +6,30 @@
 
 const API = {
   baseUrl: '',
-  useBackend: true,  // Always use backend when served from same domain
+  useBackend: true,
   token: null,
 
   init() {
-    // When served from same domain as backend, use relative paths
-    this.useBackend = true;
-    this.baseUrl = '';
+    // Check for external backend URL from config.js
+    const externalUrl = typeof CLAWFACTORY_CONFIG !== 'undefined' 
+      ? CLAWFACTORY_CONFIG.API_URL 
+      : '';
+    
+    if (externalUrl) {
+      this.useBackend = true;
+      this.baseUrl = externalUrl;
+      console.log('[API] Using external backend:', this.baseUrl);
+    } else {
+      // When served from same domain as backend, use relative paths
+      this.useBackend = true;
+      this.baseUrl = '';
+      console.log('[API] Using same-domain backend');
+    }
     
     // Load saved token
     if (typeof localStorage !== 'undefined') {
       this.token = localStorage.getItem('clawfactory_token');
     }
-    console.log('[API] Initialized - Backend mode: ON (same domain)');
   },
 
   setToken(token) {
