@@ -145,13 +145,21 @@ function logout() {
 }
 
 async function loadFeaturedCopies() {
-  const featured = await API.getFeatured();
-  const container = document.getElementById('popularCopies');
-  if (!featured?.length) {
-    container.innerHTML = '<p class="empty-message">No copies yet. Be the first to upload!</p>';
-    return;
+  console.log('[App] Loading featured copies...');
+  try {
+    const featured = await API.getFeatured();
+    console.log('[App] Featured:', featured);
+    const container = document.getElementById('popularCopies');
+    
+    if (!featured?.length) {
+      container.innerHTML = '<p class="empty-message">No copies yet. Be the first to upload!</p>';
+      return;
+    }
+    container.innerHTML = featured.map(c => renderCopyCard(c)).join('');
+    console.log('[App] Rendered', featured.length, 'featured copies');
+  } catch (err) {
+    console.error('[App] Error loading featured:', err);
   }
-  container.innerHTML = featured.map(c => renderCopyCard(c)).join('');
 }
 
 async function loadCategories() {
@@ -358,4 +366,10 @@ document.querySelector('.modal-overlay')?.addEventListener('click', closeModal);
 document.querySelector('.modal-close')?.addEventListener('click', closeModal);
 
 // Initialize
-init();
+document.addEventListener('DOMContentLoaded', () => {
+  // Wait a bit for API to initialize
+  setTimeout(() => {
+    console.log('[App] Starting...');
+    init();
+  }, 100);
+});
