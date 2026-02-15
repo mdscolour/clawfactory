@@ -265,3 +265,26 @@ Last Updated: 2026-02-15 02:13
 
 Last Updated: 2026-02-15 02:45
 Railway status check: Sun Feb 15 02:45:01 CET 2026
+
+## 🚀 Phase 6 Continuation (2026-02-15 Night - Google OAuth)
+
+### ✅ Added This Session
+- Google OAuth button on login page
+- API endpoint: POST /api/auth/google
+- CLI command: `clawfactory google`
+- Frontend JS: googleLogin(), handleGoogleResponse()
+- Google button CSS styling
+
+### Remaining
+- Google Cloud Console setup (requires your Google account)
+- Set GOOGLE_CLIENT_ID environment variable
+- Railway deploy (still pending)
+
+### How to Enable Google OAuth
+1. Go to Google Cloud Console → APIs & Services → Credentials
+2. Create OAuth 2.0 Client ID
+3. Add authorized JavaScript origins: `https://clawfactory.ai`
+4. Copy Client ID to Railway env vars: `GOOGLE_CLIENT_ID=your-id`
+5. Or set in window.GOOGLE_CLIENT_ID before loading app.js
+
+Last Updated: 2026-02-15 02:58
