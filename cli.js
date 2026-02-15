@@ -154,44 +154,85 @@ async function upload() {
 
   log('\n📤 Upload a copy\n', 'cyan');
 
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  
-  const name = await new Promise(r => rl.question('Copy name: ', r));
-  const description = await new Promise(r => rl.question('Description: ', r));
-  const author = await new Promise(r => rl.question('Author: ', r));
-  const category = await new Promise(r => rl.question('Category (financial/frontend-dev/backend-dev/pm/designer/marketing/secretary/video-maker/productivity/content/research/others): ', r));
-  const skills = await new Promise(r => rl.question('Skills (comma-separated): ', r));
-  const tags = await new Promise(r => rl.question('Tags (comma-separated): ', r));
-  const version = await new Promise(r => rl.question('Version (default 1.0.0): ', r)) || '1.0.0';
-  const isPrivate = await new Promise(r => rl.question('Private? (y/n): ', r)) === 'y';
-  rl.close();
-
-  // Get user info
+  // Get user info first
   const userRes = await fetchJson(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
   if (userRes.error) error('Session expired. Please login again.');
-  
   const user = userRes.user;
-  const username = user.username;
 
-  log('\nCreating copy...', 'cyan');
+  // Check for existing copies
+  const myCopiesRes = await fetchJson(`${API_BASE}/api/users/${user.username}`);
+  const myCopies = myCopiesRes.copies || [];
+
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+
+  let copyId = null;
+
+  // If user has existing copies, offer to update one
+  if (myCopies.length > 0) {
+    log('Your existing copies:', 'yellow');
+    myCopies.forEach((c, i) => {
+      log(`  ${i + 1}. ${c.id} (v${c.version}) - ${c.name}`, 'cyan');
+    });
+    log(`  ${myCopies.length + 1}. Create new copy`, 'cyan');
+
+    const choice = await new Promise(r => rl.question('\nChoose (number) or press Enter for new: ', r));
+
+    const num = parseInt(choice);
+    if (num >= 1 && num <= myCopies.length) {
+      copyId = myCopies[num - 1].id;
+      log(`\n📝 Updating: ${copyId}`, 'cyan');
+    }
+  }
+
+  if (!copyId) {
+    const name = await new Promise(r => rl.question('Copy name: ', r));
+    copyId = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    log(`\n📦 Creating new copy: ${copyId}`, 'cyan');
+  }
+
+  rl.close();
+
+  // Ask for copy details (reuse existing values if updating)
+  const existingCopy = myCopies.find(c => c.id === copyId);
+
+  const rl2 = readline.createInterface({ input: process.stdin, output: process.stdout });
+
+  const name = existingCopy?.name || await new Promise(r => rl.question('Description: ', r));
+  const description = existingCopy?.description || await new Promise(r => rl.question('Description: ', r));
+  const author = existingCopy?.author || await new Promise(r => rl.question('Author: ', r));
+  const category = existingCopy?.category || await new Promise(r => rl.question('Category (financial/frontend-dev/backend-dev/pm/designer/marketing/secretary/video-maker/productivity/content/research/others): ', r)) || 'others';
+  const skills = existingCopy?.skills?.join(', ') || await new Promise(r => rl.question('Skills (comma-separated): ', r));
+  const tags = existingCopy?.tags?.join(', ') || await new Promise(r => rl.question('Tags (comma-separated): ', r));
+  const isPrivate = existingCopy?.is_private === 1 || (await new Promise(r => rl.question('Private? (y/n): ', r))) === 'y';
+
+  rl2.close();
+
+  log('\n⬆️  Uploading...', 'cyan');
 
   const res = await fetchJson(`${API_BASE}/api/copies`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
     body: JSON.stringify({
-      name, description, author, version, category,
+      copyId,
+      name,
+      description,
+      author,
+      category,
       skills: skills.split(',').map(s => s.trim()).filter(Boolean),
       tags: tags.split(',').map(t => t.trim()).filter(Boolean),
       files: { 'SKILL.md': `# ${name}\n\n${description}` },
       is_private: isPrivate,
       user_id: user.id,
-      username
+      username: user.username
     })
   });
 
   if (res.error) error(res.error);
-  log(`\n✅ ${res.isUpdate ? 'Updated' : 'Created'} copy: ${res.id}`, 'green');
-  log(`\n🔗 Share URL: ${API_BASE}/#/copy/${res.id}`, 'cyan');
+  log(`\n✅ ${res.isUpdate ? `Updated to v${res.version}` : 'Created'} copy: ${res.id}`, 'green');
+  log(`\n🔗 URL: ${API_BASE}/#/${user.username}/${res.id}`, 'cyan');
 }
 
 async function info(copyId) {
