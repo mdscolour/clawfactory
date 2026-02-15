@@ -4,7 +4,7 @@
   "description": "OpenClaw Copy Registry CLI - Install and share OpenClaw configurations",
   "main": "cli.js",
   "bin": {
-    "clawfactory": "./cli.js"
+    "clawfactory": "cli.js"
   },
   "scripts": {
     "cli": "node cli.js"
@@ -21,6 +21,6 @@
   "homepage": "https://github.com/mdscolour/clawfactory",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mdscolour/clawfactory"
+    "url": "git+https://github.com/mdscolour/clawfactory.git"
   }
 }

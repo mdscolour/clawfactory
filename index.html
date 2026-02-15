@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClawFactory - OpenClaw Copy Registry</title>
+  <title>ClawFactory - Share OpenClaw Copies</title>
   <link rel="stylesheet" href="styles.css">
   <script src="config.js" defer></script>
   <script src="api.js" defer></script>
@@ -11,534 +11,205 @@
 <body>
   <header class="header">
     <div class="container">
-      <div class="logo">
+      <a href="#" class="logo" onclick="switchPage('home'); return false;">
         <span class="logo-icon">🦞</span>
         <span class="logo-text">ClawFactory</span>
-      </div>
+      </a>
       <nav class="nav">
-        <a href="#" class="nav-link active" data-page="browse">Copies</a>
-        <a href="#" class="nav-link" data-page="marketplace">🛒 Marketplace</a>
-        <a href="#" class="nav-link" data-page="compare">Compare</a>
-        <a href="#" class="nav-link" data-page="authors">Authors</a>
-        <a href="#" class="nav-link" data-page="sync">🔄 Sync</a>
-        <a href="#" class="nav-link" data-page="my-copies">My Copies</a>
+        <a href="#" class="nav-link active" data-page="copies">Copies</a>
+        <a href="#" class="nav-link" data-page="categories">Categories</a>
+        <a href="#" class="nav-link" data-page="search">Search</a>
         <a href="#" class="nav-link" data-page="upload">Upload</a>
-        <a href="#" class="nav-link" data-page="cli">CLI</a>
-        <a href="#" class="nav-link" data-page="ai" style="opacity: 0.6;">🤖 AI</a>
+        <a href="#" class="nav-link" data-page="my-copies">My Copies</a>
       </nav>
-      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
-        <span id="themeIcon">🌙</span>
-      </button>
+      <div class="auth-section">
+        <a href="#" class="nav-link" data-page="login" id="loginLink">Login</a>
+        <a href="#" class="nav-link" data-page="register" id="registerLink">Register</a>
+        <span id="userDisplay" style="display:none;"></span>
+        <button onclick="logout()" id="logoutBtn" style="display:none;" class="btn btn-secondary">Logout</button>
+      </div>
     </div>
   </header>
 
   <main class="main">
-    <div class="container">
-      <!-- Browse Page -->
-      <div id="browsePage">
-        <!-- Hero Section -->
-        <section class="hero">
-          <h1>OpenClaw Copy Registry</h1>
-          <p>Discover and share pre-configured OpenClaw copies with skills, workspaces, and personalized settings.</p>
-          <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Search copies...">
+    <!-- Home Page -->
+    <div id="homePage">
+      <section class="hero home-hero">
+        <div class="hero-content">
+          <h1>Upload or copy Claw bot in 1 second</h1>
+          <p class="hero-subtitle">Share and discover pre-configured OpenClaw copies with skills, workspaces, and personalized settings.</p>
+          <div class="hero-buttons">
+            <button class="btn btn-primary btn-lg" onclick="switchPage('copies')">Find copies</button>
+            <button class="btn btn-secondary btn-lg" onclick="switchPage('upload')">Share yours publicly</button>
+            <button class="btn btn-secondary btn-lg" onclick="handlePrivateUpload()">Upload privately</button>
           </div>
-        </section>
-
-        <!-- Featured Copies -->
-        <section class="featured-section" id="featuredSection">
-          <h2>⭐ Featured Copies</h2>
-          <p style="color: var(--text-secondary); margin-bottom: 20px;">Hand-picked top rated copies for you</p>
-          <div class="featured-grid" id="featuredList">
-            <!-- Featured copies will be rendered here -->
-          </div>
-        </section>
-
-        <!-- Filters -->
-        <section class="filters">
-          <div class="filter-group">
-            <label class="toggle">
-              <input type="checkbox" id="memoryToggle">
-              <span class="toggle-label">带 Memory</span>
-            </label>
-            <span class="filter-note">显示包含长期记忆的 copies</span>
-          </div>
-        </section>
-
-        <!-- Copy List -->
-        <section class="copy-list" id="copyList">
-          <!-- Copies will be rendered here -->
-        </section>
-
-        <!-- Empty State -->
-        <div class="empty-state" id="emptyState" style="display: none;">
-          <p>No copies found matching your criteria.</p>
         </div>
-      </div>
+      </section>
 
-      <!-- Marketplace Page -->
-      <div id="marketplacePage" style="display: none;">
-        <section class="hero">
-          <h1>🛒 Copy Marketplace</h1>
-          <p>Discover and share community-published copies</p>
-        </section>
-
-        <!-- Marketplace Filters -->
-        <section class="filters">
-          <div class="filter-group">
-            <label class="toggle">
-              <input type="checkbox" id="marketplaceToggle">
-              <span class="toggle-label">Marketplace Only</span>
-            </label>
-            <select id="marketplaceSort" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text);" onchange="renderMarketplace()">
-              <option value="rating">Top Rated</option>
-              <option value="popular">Most Popular</option>
-              <option value="recent">Recently Published</option>
-            </select>
-          </div>
-        </section>
-
-        <!-- Marketplace List -->
-        <section class="copy-list" id="marketplaceList">
-          <!-- Marketplace copies will be rendered here -->
-        </section>
-
-        <div class="empty-state" id="marketplaceEmpty" style="display: none;">
-          <p>No marketplace copies available. Publish your copies to share with the community!</p>
-        </div>
-      </div>
-
-      <!-- Compare Page -->
-      <div id="comparePage" style="display: none;">
-        <section class="hero">
-          <h1>Compare Copies</h1>
-          <p>Select up to 3 copies to compare side by side</p>
-        </section>
-
-        <!-- Copy Selection -->
-        <section class="compare-selection">
-          <h2 style="margin-bottom: 16px;">Select Copies</h2>
-          <div class="compare-grid" id="compareCopyList">
-            <!-- Copies for comparison will be rendered here -->
-          </div>
-        </section>
-
-        <!-- Comparison Results -->
-        <section class="compare-results" id="compareResults" style="display: none;">
-          <h2 style="margin-bottom: 24px;">Comparison</h2>
-          <div class="comparison-table" id="comparisonTable">
-            <!-- Comparison results will be rendered here -->
-          </div>
-        </section>
-      </div>
-
-      <!-- Sync Page -->
-      <div id="syncPage" style="display: none;">
-        <section class="hero">
-          <h1>🔄 Cloud Sync</h1>
-          <p>Sync your copies with the cloud backend</p>
-        </section>
-
-        <!-- Auth Section -->
-        <section class="my-copies-section">
-          <h2>👤 Account</h2>
-          <div id="authSection">
-            <div id="authForm" style="display: none;">
-              <div class="form-group">
-                <label for="syncUsername">Username</label>
-                <input type="text" id="syncUsername" placeholder="Enter your username">
-              </div>
-              <div class="form-actions">
-                <button class="btn btn-primary" onclick="syncRegister()">Register</button>
-                <button class="btn btn-secondary" onclick="syncLogin()">Login</button>
-              </div>
-            </div>
-            <div id="authStatus" style="display: none;">
-              <p>Logged in as: <strong id="currentUsername"></strong></p>
-              <button class="btn btn-secondary" onclick="syncLogout()">Logout</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- Sync Actions -->
-        <section class="my-copies-section">
-          <h2>🔄 Sync Actions</h2>
-          <div class="action-buttons">
-            <button class="btn btn-primary" onclick="syncFromCloud()">⬇️ Download from Cloud</button>
-            <button class="btn btn-secondary" onclick="syncToCloud()">⬆️ Upload to Cloud</button>
-          </div>
-          <p id="syncStatus" style="margin-top: 16px; color: var(--text-secondary);"></p>
-        </section>
-
-        <!-- Backend Status -->
-        <section class="my-copies-section">
-          <h2>🌐 Backend Status</h2>
-          <div id="backendStatus">
-            <p>Checking connection...</p>
-          </div>
-        </section>
-      </div>
-
-      <!-- Authors Page -->
-      <div id="authorsPage" style="display: none;">
-        <section class="hero">
-          <h1>Authors</h1>
-          <p>Discover copies by their creators.</p>
-        </section>
-
-        <section class="authors-grid" id="authorsList">
-          <!-- Authors will be rendered here -->
-        </section>
-      </div>
-
-      <!-- Author Profile Page -->
-      <div id="authorProfilePage" style="display: none;">
-        <section class="hero">
-          <button class="btn btn-secondary" onclick="switchPage('authors')" style="margin-bottom: 16px;">← Back to Authors</button>
-          <h1 id="authorName">Author Name</h1>
-          <p id="authorBio">Author bio</p>
-        </section>
-
-        <section class="author-copies" id="authorCopiesList">
-          <!-- Author's copies will be rendered here -->
-        </section>
-      </div>
-
-      <!-- My Copies Page -->
-      <div id="myCopiesPage" style="display: none;">
-        <section class="hero">
-          <h1>My Copies</h1>
-          <p>Manage your uploaded copies and installations.</p>
-        </section>
-
-        <!-- Installed Copies -->
-        <section class="my-copies-section">
-          <h2>🖥️ Installed Copies</h2>
-          <div class="installed-list" id="installedList">
-            <p class="empty-message">No copies installed yet.</p>
-          </div>
-        </section>
-
-        <!-- Uploaded Copies -->
-        <section class="my-copies-section">
-          <h2>📤 Uploaded Copies</h2>
-          <div class="uploaded-list" id="uploadedList">
-            <p class="empty-message">No copies uploaded yet.</p>
-          </div>
-        </section>
-
-        <!-- Actions -->
-        <section class="my-copies-section">
-          <h2>⚙️ Actions</h2>
-          <div class="action-buttons">
-            <button class="btn btn-primary" onclick="exportAllCopies()">📤 Export All Data</button>
-            <button class="btn btn-secondary" onclick="importCopies()">📥 Import Data</button>
-            <button class="btn btn-secondary" onclick="bulkExport()">📦 Export Copies</button>
-            <button class="btn btn-secondary" onclick="bulkImport()">📥 Import Copies</button>
-            <button class="btn btn-secondary" onclick="showAllBackups()">💾 Manage Backups</button>
-            <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
-          </div>
-        </section>
-      </div>
-
-      <!-- Upload Page -->
-      <div id="uploadPage" style="display: none;">
-        <section class="hero">
-          <h1>Upload Your Copy</h1>
-          <p>Share your OpenClaw configuration with the community.</p>
-        </section>
-
-        <form id="uploadForm" class="upload-form">
-          <div class="form-group">
-            <label for="copyName">Copy Name *</label>
-            <input type="text" id="copyName" required placeholder="e.g., Polymarket Trader">
-          </div>
-
-          <div class="form-group">
-            <label for="copyDescription">Description *</label>
-            <textarea id="copyDescription" required placeholder="Brief description of your copy..."></textarea>
-          </div>
-
-          <div class="form-group">
-            <label for="copyAuthor">Author *</label>
-            <input type="text" id="copyAuthor" required placeholder="Your name or username">
-          </div>
-
-          <div class="form-group">
-            <label for="copyVersion">Version</label>
-            <input type="text" id="copyVersion" placeholder="1.0.0" value="1.0.0">
-          </div>
-
-          <div class="form-group">
-            <label>Memory</label>
-            <div class="form-row">
-              <label class="radio-label">
-                <input type="radio" name="hasMemory" value="true">
-                <span>带 Memory</span>
-              </label>
-              <label class="radio-label">
-                <input type="radio" name="hasMemory" value="false" checked>
-                <span>不带 Memory</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="copySkills">Skills (comma-separated) *</label>
-            <input type="text" id="copySkills" required placeholder="e.g., trading, monitoring, polymarket">
-          </div>
-
-          <div class="form-group">
-            <label for="copyTags">Tags (comma-separated)</label>
-            <input type="text" id="copyTags" placeholder="e.g., trading, automation, finance (optional)">
-          </div>
-
-          <div class="form-group">
-            <label for="copyCategory">Category</label>
-            <select id="copyCategory" onchange="toggleCustomCategory()">
-              <option value="">-- 选择类别 --</option>
-              <option value="financial">💰 Financial</option>
-              <option value="frontend-dev">🎨 Frontend Dev</option>
-              <option value="backend-dev">⚙️ Backend Dev</option>
-              <option value="fullstack-dev">🔄 Fullstack Dev</option>
-              <option value="pm">📋 PM</option>
-              <option value="designer">🎨 Designer</option>
-              <option value="marketing">📢 Marketing</option>
-              <option value="secretary">👩‍💼 Secretary</option>
-              <option value="video-maker">🎬 Video Maker</option>
-              <option value="productivity">🚀 Productivity</option>
-              <option value="content">✍️ Content</option>
-              <option value="research">🔬 Research</option>
-              <option value="others">📦 Others</option>
-              <option value="custom">✨ 自定义...</option>
-            </select>
-            <input type="text" id="customCategory" placeholder="输入自定义类别" style="display: none; margin-top: 8px;">
-          </div>
-
-          <div class="form-group">
-            <label>Privacy</label>
-            <div class="form-row">
-              <label class="radio-label">
-                <input type="radio" name="isPrivate" value="false" checked>
-                <span>🔓 Public</span>
-              </label>
-              <label class="radio-label">
-                <input type="radio" name="isPrivate" value="true">
-                <span>🔒 Private</span>
-              </label>
-            </div>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 8px;">
-              Private copies are only visible to you. Use for personal configurations.
-            </p>
-          </div>
-
-          <div class="form-group">
-            <label for="copyFeatures">Features (one per line) *</label>
-            <textarea id="copyFeatures" required placeholder="Feature 1&#10;Feature 2&#10;Feature 3"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Complete Snapshot Files</label>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">
-              Upload a JSON file with all files (SKILL.md, SOUL.md, config.js, etc.)
-            </p>
-            <input type="file" id="copyFilesJson" accept=".json" onchange="handleFilesUpload()">
-            <textarea id="copyFilesContent" placeholder='{"SKILL.md": "...", "SOUL.md": "...", "config.js": "..."}' style="width: 100%; min-height: 120px; margin-top: 8px; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: monospace; font-size: 0.85rem;"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Memory Content (optional)</label>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">
-              Paste memory file content if this copy has memory. Leave empty if no memory.
-            </p>
-            <textarea id="copyMemory" placeholder="Paste memory content here (e.g., memory/{copyId}.md)..." style="width: 100%; min-height: 80px; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text);"></textarea>
-          </div>
-
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Submit Copy</button>
-          </div>
-        </form>
-      </div>
-
-      <!-- CLI Page -->
-      <div id="cliPage" style="display: none;">
-        <section class="hero">
-          <h1>CLI Installation</h1>
-          <p>Install any copy with a single command.</p>
-        </section>
-
-        <div class="cli-section">
-          <h2>Install a Copy</h2>
+      <section class="install-section">
+        <h2>Install any copy in one shot</h2>
+        <div class="install-commands">
           <div class="install-command">
-            <code>clawfactory install &lt;copy-id&gt;</code>
-          </div>
-        </div>
-
-        <div class="cli-section">
-          <h2>Available Commands</h2>
-          <table class="cli-table">
-            <tr>
-              <td><code>clawfactory list</code></td>
-              <td>List all available copies</td>
-            </tr>
-            <tr>
-              <td><code>clawfactory search &lt;query&gt;</code></td>
-              <td>Search for copies</td>
-            </tr>
-            <tr>
-              <td><code>clawfactory install &lt;copy-id&gt;</code></td>
-              <td>Install a specific copy</td>
-            </tr>
-            <tr>
-              <td><code>clawfactory upload</code></td>
-              <td>Upload your own copy (opens editor)</td>
-            </tr>
-          </table>
-        </div>
-
-        <div class="cli-section">
-          <h2>Quick Install (Recommended)</h2>
-          <p>Install any copy with a single command:</p>
-          <div class="install-command">
-            <code>bash <(curl -sL https://clawhub.com/install/&lt;copy-id&gt;.sh)</code>
-          </div>
-          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 12px;">
-            💡 Tip: Click any copy below to get its exact install command.
-          </p>
-        </div>
-
-        <div class="cli-section">
-          <h2>Alternative: Download & Run Script</h2>
-          <p>Download the install script and run it manually:</p>
-          <div class="install-command">
-            <code>chmod +x install-&lt;copy-id&gt;.sh && ./install-&lt;copy-id&gt;.sh</code>
-          </div>
-        </div>
-
-        <div class="cli-section">
-          <h2>Install ClawFactory CLI</h2>
-          <div class="install-command">
+            <span class="cmd-label">npm (recommended)</span>
             <code>npm install -g clawfactory</code>
           </div>
-        </div>
-
-        <div class="cli-section">
-          <h2>Quick Install Commands</h2>
-          <p>Copy and run any of these commands:</p>
-          <div id="cliCopyList">
-            <!-- Dynamic copy commands will be rendered here -->
-          </div>
-        </div>
-      </div>
-
-      <!-- AI API Page -->
-      <div id="aiPage" style="display: none;">
-        <section class="hero">
-          <h1>🤖 AI API</h1>
-          <p>ClawFactory API for AI agents</p>
-        </section>
-
-        <section class="ai-section">
-          <h2>🔗 API Endpoints</h2>
-          <div class="api-endpoint">
-            <code>GET /api/copies</code>
-            <p>List all public copies (supports ?category=...)</p>
-          </div>
-          <div class="api-endpoint">
-            <code>GET /api/copies/:id</code>
-            <p>Get single copy (returns files + memory)</p>
-          </div>
-          <div class="api-endpoint">
-            <code>GET /api/search?q=...</code>
-            <p>Search copies by name, description, skills, tags</p>
-          </div>
-          <div class="api-endpoint">
-            <code>GET /api/categories</code>
-            <p>List all categories</p>
-          </div>
-          <div class="api-endpoint">
-            <code>GET /.well-known/ai-manifest.json</code>
-            <p>AI discovery manifest (for OpenClaw AI)</p>
-          </div>
-        </section>
-
-        <section class="ai-section">
-          <h2>📦 Install Copy</h2>
-          <p>For AI agents, use the install command:</p>
           <div class="install-command">
-            <code>clawfactory install &lt;copy-id&gt;</code>
+            <span class="cmd-label">curl</span>
+            <code>curl -sL https://raw.githubusercontent.com/mdscolour/clawfactory/main/install.sh | bash</code>
           </div>
-          <p style="margin-top: 12px; color: var(--text-secondary);">
-            This downloads the complete snapshot and restores all files.
-          </p>
-        </section>
+        </div>
+        <p class="install-note">Requires Node.js</p>
+      </section>
 
-        <section class="ai-section">
-          <h2>🔧 OpenClaw AI Integration</h2>
-          <p>OpenClaw AI can discover and install copies automatically:</p>
-          <pre style="background: var(--bg-secondary); padding: 16px; border-radius: 8px; overflow-x: auto;">
-// AI can call clawfactory CLI directly
-exec("clawfactory install polymarket-trader");
+      <section class="popular-section">
+        <h2>🔥 Popular Copies</h2>
+        <div class="copy-grid" id="popularCopies"></div>
+      </section>
+    </div>
 
-// Or use the API to find copies first
-const copies = await fetch("https://clawfactory.com/api/search?q=trading");
-          </pre>
-        </section>
+    <!-- Copies Page -->
+    <div id="copiesPage" style="display:none;">
+      <section class="page-header">
+        <h1>All Copies</h1>
+        <div class="category-chips" id="categoryChips"></div>
+      </section>
+      <div class="copy-grid" id="allCopies"></div>
+    </div>
 
-        <section class="ai-section">
-          <h2>📁 Categories</h2>
-          <p>Filter by category:</p>
-          <div class="category-chips" id="aiCategoryChips">
-            <span class="chip" data-category="">All</span>
-            <!-- Categories rendered dynamically -->
-          </div>
-        </section>
+    <!-- Categories Page -->
+    <div id="categoriesPage" style="display:none;">
+      <section class="page-header">
+        <h1>Categories</h1>
+      </section>
+      <div class="category-grid" id="categoryGrid"></div>
+    </div>
 
-        <section class="ai-section">
-          <h2>📋 Example: Find Financial Copy</h2>
-          <pre style="background: var(--bg-secondary); padding: 16px; border-radius: 8px; overflow-x: auto;">
-// Search for financial/trading related copies
-GET /api/search?q=financial&category=financial
+    <!-- Search Page -->
+    <div id="searchPage" style="display:none;">
+      <section class="page-header">
+        <h1>Search</h1>
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Search copies..." oninput="handleSearch(this.value)">
+        </div>
+      </section>
+      <div class="copy-grid" id="searchResults"></div>
+    </div>
 
-// Response:
-{
-  "copies": [
-    {
-      "id": "polymarket-trader",
-      "name": "Polymarket Trader",
-      "category": "financial",
-      "skills": ["trading", "monitoring"],
-      "files": {
-        "SKILL.md": "...",
-        "SOUL.md": "..."
-      },
-      "memory": "..."
-    }
-  ]
-}
-          </pre>
-        </section>
+    <!-- Upload Page -->
+    <div id="uploadPage" style="display:none;">
+      <section class="page-header">
+        <h1>Upload a Copy</h1>
+      </section>
+      <form id="uploadForm" class="upload-form">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" id="copyName" required placeholder="e.g., Polymarket Trader">
+        </div>
+        <div class="form-group">
+          <label>Description *</label>
+          <textarea id="copyDescription" required placeholder="Brief description..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Author *</label>
+          <input type="text" id="copyAuthor" required placeholder="Your name">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="copyCategory">
+            <option value="financial">💰 Financial</option>
+            <option value="frontend-dev">🎨 Frontend Dev</option>
+            <option value="backend-dev">⚙️ Backend Dev</option>
+            <option value="fullstack-dev">🔄 Fullstack Dev</option>
+            <option value="pm">📋 PM</option>
+            <option value="designer">🎨 Designer</option>
+            <option value="marketing">📢 Marketing</option>
+            <option value="secretary">👩💼 Secretary</option>
+            <option value="video-maker">🎬 Video Maker</option>
+            <option value="productivity">🚀 Productivity</option>
+            <option value="content">✍️ Content</option>
+            <option value="research">🔬 Research</option>
+            <option value="others">📦 Others</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Skills (comma-separated)</label>
+          <input type="text" id="copySkills" placeholder="e.g., trading, monitoring">
+        </div>
+        <div class="form-group">
+          <label>Tags (comma-separated)</label>
+          <input type="text" id="copyTags" placeholder="e.g., crypto, automation">
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="copyPrivate"> Private copy (owner only)
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+      </form>
+    </div>
+
+    <!-- Login/Register Pages -->
+    <div id="loginPage" style="display:none;">
+      <section class="page-header">
+        <h1>Login</h1>
+      </section>
+      <form id="loginForm" class="auth-form">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="loginUsername" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+        <p style="margin-top:16px;">Don't have an account? <a href="#" onclick="switchPage('register'); return false;">Register</a></p>
+      </form>
+    </div>
+
+    <div id="registerPage" style="display:none;">
+      <section class="page-header">
+        <h1>Register</h1>
+      </section>
+      <form id="registerForm" class="auth-form">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="regUsername" required>
+        </div>
+        <div class="form-group">
+          <label>Email (optional)</label>
+          <input type="email" id="regEmail">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="regPassword" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Register</button>
+        <p style="margin-top:16px;">Already have an account? <a href="#" onclick="switchPage('login'); return false;">Login</a></p>
+      </form>
+    </div>
+
+    <!-- My Copies Page -->
+    <div id="myCopiesPage" style="display:none;">
+      <section class="page-header">
+        <h1>My Copies</h1>
+      </section>
+      <div id="myCopiesList"></div>
+    </div>
+
+    <!-- Copy Detail Modal -->
+    <div class="modal" id="copyModal">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <div class="modal-body" id="modalBody"></div>
       </div>
     </div>
   </main>
 
-  <!-- Copy Detail Modal -->
-  <div class="modal" id="copyModal">
-    <div class="modal-overlay"></div>
-    <div class="modal-content">
-      <button class="modal-close" id="modalClose">&times;</button>
-      <div class="modal-body" id="modalBody">
-        <!-- Copy details will be rendered here -->
-      </div>
-    </div>
-  </footer>
-
-  <!-- Hidden file input for import -->
-  <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="handleImportFile(event)">
-
   <footer class="footer">
     <div class="container">
-      <p>ClawFactory - Share your OpenClaw configuration with the world</p>
+      <p>ClawFactory - Share OpenClaw copies</p>
     </div>
   </footer>
 
