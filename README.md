@@ -51,8 +51,11 @@ curl -sL https://raw.githubusercontent.com/mdscolour/clawfactory/main/install.sh
 clawfactory list           # List all copies
 clawfactory search <query> # Search copies
 clawfactory install <id>   # Install a copy
+clawfactory copy <id>      # Alias for install
+clawfactory hottest        # Install top-rated copy
+clawfactory publish [dir]  # Publish local directory (reads SKILL.md, SOUL.md, AGENTS.md)
 clawfactory login          # Login to upload
-clawfactory upload         # Upload a copy
+clawfactory upload         # Interactive upload
 ```
 
 ### Local Development
