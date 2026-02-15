@@ -101,3 +101,33 @@ Last Updated: 2026-02-14 (CLI tools + Railway deployment)
 - ✅ Static file serving (backend serves frontend)
 - ✅ Same-domain API configuration
 - ✅ Seed data (auto-add example copies on empty DB)
+
+## 🚀 Phase 6: User System & New UI (Completed!)
+
+### ✅ User Authentication
+- Username/password registration
+- Login/logout
+- Token-based sessions
+- Google OAuth support
+
+### ✅ New CLI Commands
+- `clawfactory login` - Login
+- `clawfactory register` - Register  
+- `clawfactory copy <id>` - Alias for install
+- `clawfactory hottest` - Install top-rated copy
+- `clawfactory upload` - Upload new copy
+
+### ✅ New Web UI
+- Light theme (default)
+- Homepage redesign
+- Category pages
+- User login/register
+- Copy grid layout
+- Simplified navigation
+
+### ✅ Backend Updates
+- Password authentication
+- Username in copies
+- User pages API
+
+Last Updated: 2026-02-15
