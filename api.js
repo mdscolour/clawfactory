@@ -47,7 +47,7 @@ const API = {
   },
 
   async request(endpoint, options = {}) {
-    if (!this.useBackend || !this.baseUrl) {
+    if (!this.useBackend) {
       return { error: 'Backend not configured', offline: true };
     }
 
