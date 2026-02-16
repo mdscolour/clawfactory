@@ -259,9 +259,10 @@ const routes = {
   'POST /api/auth/register': (req) => {
     const { username, email, password } = req.body;
     const id = generateId();
+    const token = 'clawfactory_' + generateId();
     try {
       run('INSERT INTO users (id, username, email, password_hash) VALUES (?, ?, ?, ?)', [id, username, email||null, hashPassword(password)]);
-      return { success: true, user: { id, username, email }, token: id };
+      return { success: true, user: { id, username, email }, token };
     } catch (err) { return { error: err.message, status: 400 }; }
   },
 
@@ -270,7 +271,8 @@ const routes = {
     const user = getOne('SELECT * FROM users WHERE username = ?', [username]);
     if (!user) return { error: 'User not found', status: 404 };
     if (user.password_hash && !verifyPassword(password, user.password_hash)) return { error: 'Invalid password', status: 401 };
-    return { success: true, user: { id: user.id, username: user.username, email: user.email }, token: user.id };
+    const token = 'clawfactory_' + user.id;
+    return { success: true, user: { id: user.id, username: user.username, email: user.email }, token };
   },
 
   'POST /api/auth/google': (req) => {

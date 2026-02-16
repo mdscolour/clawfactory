@@ -25,6 +25,11 @@ function handleRoute() {
   const parts = normalized.split('/').filter(Boolean);
 
   if (parts.length === 2 && !parts[0].startsWith('page')) {
+    // Handle /username/account route
+    if (parts[1] === 'account') {
+      showUserAccountPage(parts[0]);
+      return;
+    }
     showUserCopyPage(parts[0], parts[1]);
   } else if (parts.length === 1 && !parts[0].startsWith('page') && route !== '/') {
     showUserPage(parts[0]);
@@ -32,6 +37,42 @@ function handleRoute() {
     switchPage('home');
   } else if (route.startsWith('page=')) {
     switchPage(route.replace('page=', ''));
+  }
+}
+
+function showUserAccountPage(username) {
+  // Show account page for specific user
+  pages.forEach(p => {
+    const el = document.getElementById(`${p}Page`);
+    if (el) el.style.display = 'none';
+  });
+  const userCopyPage = document.getElementById('userCopyPage');
+  if (userCopyPage) userCopyPage.style.display = 'none';
+  
+  const accountPage = document.getElementById('accountPage');
+  if (accountPage) {
+    accountPage.style.display = 'block';
+    loadAccountByUsername(username);
+  }
+}
+
+async function loadAccountByUsername(username) {
+  document.getElementById('accountUsername').textContent = username;
+  
+  // Get tokens from localStorage
+  const accessToken = localStorage.getItem('clawfactory_token') || '';
+  const sensitiveToken = localStorage.getItem('clawfactory_sensitive_token') || '';
+  
+  if (accessToken) {
+    document.getElementById('accessToken').textContent = accessToken;
+  } else {
+    document.getElementById('accessToken').textContent = 'Login to get token';
+  }
+  
+  if (sensitiveToken) {
+    document.getElementById('sensitiveToken').textContent = sensitiveToken;
+  } else {
+    document.getElementById('sensitiveToken').textContent = 'Login to get token';
   }
 }
 
@@ -349,7 +390,7 @@ function handlePrivateUpload() {
 function copyToken() {
   const token = document.getElementById('userToken').textContent;
   navigator.clipboard?.writeText(token);
-  showNotification('Token copied!');
+  showNotification('✅ Token copied!');
 }
 
 document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
