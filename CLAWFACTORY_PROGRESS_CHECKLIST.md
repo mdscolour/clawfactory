@@ -383,18 +383,23 @@ Last Updated: 2026-02-15 03:45
 - Commands: install, copy, upload, secret upload, secret install, hottest, mine, search
 
 ### ✅ Frontend Simplified (2026-02-16)
-- Login page: token input OR username/password login
+- Login page: username/password only (no token login)
 - Register page: username/password → generates token → displays token
-- Token saved to localStorage for CLI use
 - Account page with Access Token + Sensitive Token (light theme)
 - CLI usage examples shown on account page
 - Logged-in users see Account + Logout (side by side)
 - Logout clears both tokens
 - Login rate limiting: 10 attempts, 1 hour lockout
 
+### ✅ Routes Defined
+- `/username/account` - User account page (requires login, shows tokens)
+- `/username/ID` - Public copy page (no login required)
+- `/username/private/ID` - Private copy page (requires login)
+- `/api/copies/:id/private` - API endpoint for private copies
+
 ### 🔜 Railway Deployment Needed
 - npm published: clawfactory@1.0.12 ✅
-- Latest commit: f8b4678 (CLI: support TOKEN=<your-token> format)
+- Latest commit: d382e09 (three routes implemented)
 - User needs to trigger deployment on Railway dashboard
 
 ### Note

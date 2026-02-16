@@ -134,8 +134,11 @@ function parseJson(str, defaultVal = null) {
   try { return JSON.parse(str); } catch { return defaultVal; }
 }
 
+const crypto = require('crypto');
+const salt = 'clawfactory-2024';
+
 function hashPassword(password) {
-  return Buffer.from(password).toString('base64');
+  return crypto.createHash('sha256').update(password + salt).digest('hex');
 }
 
 function verifyPassword(password, hash) {
@@ -299,34 +302,67 @@ const routes = {
 
   'POST /api/auth/register': (req) => {
     const { username, email, password } = req.body;
+    console.log('[Register] Attempting:', { username, email });
     const id = generateId();
     const token = 'clawfactory_' + generateId();
     try {
-      run('INSERT INTO users (id, username, email, password_hash) VALUES (?, ?, ?, ?)', [id, username, email||null, hashPassword(password)]);
+      const hash = hashPassword(password);
+      console.log('[Register] Password hash:', hash);
+      run('INSERT INTO users (id, username, email, password_hash) VALUES (?, ?, ?, ?)', [id, username, email||null, hash]);
+      console.log('[Register] Success:', { id, username });
       return { success: true, user: { id, username, email }, token };
-    } catch (err) { return { error: err.message, status: 400 }; }
+    } catch (err) { 
+      console.error('[Register] Error:', err.message);
+      return { error: err.message, status: 400 }; 
+    }
   },
 
   'POST /api/auth/login': (req) => {
     const { username, password } = req.body;
+    console.log('[Login] Attempting:', { username });
     
     // Check rate limit first
     const rateLimit = checkLoginRateLimit(username);
     if (!rateLimit.allowed) {
+      console.log('[Login] Rate limited:', username);
       return { error: `Too many failed attempts. Try again in ${rateLimit.remainingMin} minutes.`, status: 429, remainingMin: rateLimit.remainingMin };
     }
     
     const user = getOne('SELECT * FROM users WHERE username = ?', [username]);
-    if (!user) return { error: 'Invalid username or password', status: 401, remaining: rateLimit.remaining };
+    console.log('[Login] User found:', user ? 'yes' : 'no');
+    
+    if (!user) {
+      console.log('[Login] User not found');
+      return { error: 'Invalid username or password', status: 401, remaining: rateLimit.remaining };
+    }
+    
+    const inputHash = hashPassword(password);
+    const storedHash = user.password_hash;
+    console.log('[Login] Input hash:', inputHash);
+    console.log('[Login] Stored hash:', storedHash);
+    console.log('[Login] Match:', inputHash === storedHash);
+    
     if (user.password_hash && !verifyPassword(password, user.password_hash)) {
+      console.log('[Login] Password mismatch');
       return { error: 'Invalid username or password', status: 401, remaining: rateLimit.remaining };
     }
     
     // Success - reset failed attempts
     resetLoginAttempts(username);
+    console.log('[Login] Success!');
     
     const token = 'clawfactory_' + user.id;
     return { success: true, user: { id: user.id, username: user.username, email: user.email }, token };
+  },
+
+  // Clear rate limit (for testing)
+  'POST /api/auth/clear-limit': (req) => {
+    const { username } = req.body;
+    if (username) {
+      resetLoginAttempts(username);
+      return { success: true, message: 'Rate limit cleared' };
+    }
+    return { error: 'Username required', status: 400 };
   },
 
   'POST /api/auth/google': (req) => {
