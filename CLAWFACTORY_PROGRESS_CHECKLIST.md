@@ -393,16 +393,10 @@ Last Updated: 2026-02-15 03:45
 - Logged-in users see Account link, Login/Register hidden
 - Logout clears both tokens
 
-### 🔜 Ready to Publish & Deploy
-- Latest commit: 17a3f2d
-- User needs to run:
-  1. npm version patch
-  2. npm publish --otp=验证码
-  3. Trigger Railway deployment
-
-### 🔜 Railway Deployment
-- Frontend changes ready but not visible online
-- User needs to trigger deployment after npm publish
+### 🔜 Railway Deployment Needed
+- npm published: clawfactory@1.0.12 ✅
+- Latest commit: 1f7ec36
+- User needs to trigger deployment on Railway dashboard
 
 ### Note
 This is an autonomous work cycle.

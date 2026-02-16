@@ -282,7 +282,7 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
       showNotification('Token saved!');
       switchPage('home');
     } else {
-      showNotification('Invalid token');
+      showNotification('Invalid token: ' + (currentUser?.error || 'User not found'));
     }
   }
 });
@@ -293,12 +293,13 @@ document.getElementById('loginPasswordForm')?.addEventListener('submit', async (
   const password = document.getElementById('loginPassword').value;
   
   const res = await API.login(username, password);
+  console.log('[Login] Response:', res); // Debug log
   if (res.success && res.token) {
     updateAuthUI();
     showNotification('Logged in!');
     switchPage('home');
   } else {
-    showNotification(res.error || 'Login failed');
+    showNotification('Login failed: ' + (res.error || res.message || 'Unknown error'));
   }
 });
 
@@ -313,13 +314,14 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
   }
   
   const res = await API.register(username, password);
+  console.log('[Register] Response:', res);
   if (res.success && res.token) {
     document.getElementById('registerForm').style.display = 'none';
     document.getElementById('tokenResult').style.display = 'block';
     document.getElementById('userToken').textContent = res.token;
     window.pendingToken = res.token;
   } else {
-    showNotification(res.error || 'Registration failed');
+    showNotification('Registration failed: ' + (res.error || res.message || 'Unknown error'));
   }
 });
 
