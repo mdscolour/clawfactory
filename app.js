@@ -200,6 +200,9 @@ function switchPage(page) {
     const el = document.getElementById(`${p}Page`);
     if (el) el.style.display = p === page ? 'block' : 'none';
   });
+  // Always hide userCopyPage when switching pages
+  const userCopyPage = document.getElementById('userCopyPage');
+  if (userCopyPage) userCopyPage.style.display = 'none';
   document.querySelectorAll('.nav-link').forEach(l => {
     l.classList.toggle('active', l.dataset.page === page);
   });

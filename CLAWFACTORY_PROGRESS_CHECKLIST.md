@@ -388,9 +388,10 @@ Last Updated: 2026-02-15 03:45
 - Users can now GET tokens from web UI
 - Token saved to localStorage for CLI use
 - Fixed API.register password issue (ebbb0b2)
+- Fixed register page not showing (7647cbe)
 
 ### 🔜 Waiting for npm publish
-- Version 1.0.12 ready (GitHub: ebbb0b2)
+- Latest GitHub commit: 7647cbe
 - User needs: `npm publish --otp=验证码`
 
 ### 🔜 Railway Deployment
