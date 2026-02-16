@@ -405,7 +405,9 @@ async function mine() {
   const token = getToken();
   if (!token) error('Please login first: clawfactory login');
 
-  log('\n📦 Your copies:\n', 'cyan');
+  const isPrivate = args.includes('--private') || args.includes('-p');
+  
+  log(`\n📦 Your ${isPrivate ? 'private' : 'public'} copies:\n`, 'cyan');
 
   const userRes = await fetchJson(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
   if (userRes.error) error('Session expired. Please login again.');
@@ -414,18 +416,18 @@ async function mine() {
   const userPage = await fetchJson(`${API_BASE}/api/users/${user.username}`);
   if (userPage.error) error('Could not fetch your copies');
 
-  const copies = userPage.copies || [];
+  const copies = (userPage.copies || []).filter(c => isPrivate ? c.is_private : !c.is_private);
+  
   if (!copies.length) {
-    log('You haven\'t uploaded any copies yet.', 'yellow');
-    log('Use "clawfactory upload" to publish your first copy!', 'cyan');
+    log(`You haven't uploaded any ${isPrivate ? 'private' : 'public'} copies yet.`, 'yellow');
     return;
   }
 
-  log(`Found ${copies.length} copies:\n`, 'green');
+  log(`Found ${copies.length} ${isPrivate ? 'private' : 'public'} copies:\n`, 'green');
   copies.forEach(c => {
     console.log(`  ${COLORS.cyan}${c.id}${COLORS.reset}`);
     console.log(`    ${c.name} (v${c.version})`);
-    console.log(`    ⭐ ${c.rating_average || 0} | 📦 ${c.install_count || 0} | ${c.is_private ? '🔒 Private' : '🌐 Public'}`);
+    console.log(`    ⭐ ${c.rating_average || 0} | 📦 ${c.install_count || 0}`);
     console.log('');
   });
 }
@@ -570,16 +572,17 @@ ${COLORS.green}Commands:${COLORS.reset}
   logout                   Log out
   list                     List all public copies
   search <query>          Search for copies
-  install <copy-id>       Install a copy to your system
-  copy <copy-id>          Alias for install
+  install <copy-id>        Install a copy to your system
+  copy <copy-id>           Alias for install
   hottest                 Install the top-rated copy
-  upload                   Upload a new copy (login required)
-  publish [dir]           Publish local directory (default: current dir)
-  secret-upload            Upload with .env secrets (encrypted)
-  secret-install <id> <key> Install encrypted copy with secret key
-  mine                    List your uploaded copies
-  info <copy-id>          Show copy details
-  categories               List all categories
+  upload                   Upload a public copy
+  publish [dir]            Publish local directory (default: current dir)
+  secret upload            Upload with .env secrets (encrypted)
+  secret install <id> <key> Install encrypted copy with secret key
+  mine                     List your public copies
+  mine --private           List your private copies
+  info <copy-id>           Show copy details
+  categories                List all categories
   stats                    Show statistics
 
 ${COLORS.green}Examples:${COLORS.reset}
@@ -589,7 +592,8 @@ ${COLORS.green}Examples:${COLORS.reset}
   clawfactory copy polymarket-trader
   clawfactory hottest
   clawfactory mine
-  clawfactory secret-upload
+  clawfactory mine --private
+  clawfactory secret upload
   clawfactory secret-install mycopy abc123-key
 
 ${COLORS.green}Environment:${COLORS.reset}
@@ -615,7 +619,12 @@ switch (cmd) {
   case 'hottest': hottest(); break;
   case 'upload': upload(); break;
   case 'publish': case 'pub': publish(args[1] || '.'); break;
-  case 'secret-upload': secretUpload(); break;
+  case 'secret': 
+    if (args[1] === 'upload') secretUpload();
+    else if (args[1] === 'install') secretInstall(args[2], args[3]);
+    else showHelp();
+    break;
+  case 'secret-upload': secretUpload(); break;  // backward compat
   case 'secret-install': case 'secret-i': secretInstall(args[1], args[2]); break;
   case 'mine': mine(); break;
   case 'info': case 'show': info(args[1]); break;
