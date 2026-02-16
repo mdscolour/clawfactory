@@ -3,9 +3,6 @@
   "version": "1.0.7",
   "description": "OpenClaw Copy Registry CLI - Install and share OpenClaw configurations",
   "main": "cli.js",
-  "bin": {
-    "clawfactory": "./cli.js"
-  },
   "scripts": {
     "cli": "node cli.js",
     "start": "node backend/server.js",
@@ -31,5 +28,8 @@
   "dependencies": {
     "sql.js": "^1.13.0",
     "ws": "^8.18.0"
+  },
+  "bin": {
+    "clawfactory": "cli.js"
   }
 }

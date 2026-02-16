@@ -452,7 +452,7 @@ async function secretUpload(copyId) {
   // Encrypt secrets
   const secretKey = crypto.randomBytes(32).toString('hex');
   const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(secretKey.padEnd(32).slice(0, 32), iv);
+  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(secretKey.padEnd(32).slice(0, 32)), iv);
   let encrypted = cipher.update(envContent, 'utf8', 'hex');
   encrypted += cipher.final('hex');
 
@@ -533,7 +533,7 @@ async function secretInstall(copyId, secretKey) {
     // Decrypt
     const [ivHex, encrypted] = copy.encrypted_secrets.split(':');
     const iv = Buffer.from(ivHex, 'hex');
-    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(secretKey.padEnd(32).slice(0, 32), iv);
+    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(secretKey.padEnd(32).slice(0, 32)), iv);
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
 

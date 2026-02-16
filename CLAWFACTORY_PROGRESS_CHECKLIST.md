@@ -350,27 +350,23 @@ Last Updated: 2026-02-15 03:45
 - Documentation updates
 - Local development verification
 
-### ✅ Recent Commits (Not Yet Deployed)
-- Google OAuth support
-- npm warnings fix
-- publish command
-- README updates
-
-### 📋 Local Test Commands
-```bash
-# Start backend locally
-cd ~/Desktop/clawfactory/backend && node server.js
-
-# Test CLI
-npx clawfactory publish .
-npx clawfactory list
-npx clawfactory search trading
-```
-
 ### 🚨 Blocked (Waiting for Railway)
 - Frontend testing (popular copies, user pages)
 - Google OAuth button testing
 - Full user flow testing
+
+### ✅ CLI Commands (2026-02-16)
+- `clawfactory upload` - Upload public copy
+- `clawfactory install <id>` - Install public copy
+- `clawfactory secret upload` - Encrypt + upload with .env
+- `clawfactory secret install <id> <key>` - Decrypt install
+- `clawfactory mine` - List public copies
+- `clawfactory mine --private` - List private copies
+- Model field support added
+
+### 🔜 Waiting for npm publish
+- User needs to run: `npm login` then `npm publish`
+- OTP (2FA) required
 
 ### Note
 This is an autonomous work cycle. No message will be sent unless significant progress is made.
