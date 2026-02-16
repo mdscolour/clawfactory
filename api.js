@@ -83,10 +83,10 @@ const API = {
   },
 
   // ========== AUTH ==========
-  async register(username, email = null) {
+  async register(username, password) {
     const result = await this.request('/api/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ username, email })
+      body: JSON.stringify({ username, password })
     });
     
     if (result.success && result.token) {

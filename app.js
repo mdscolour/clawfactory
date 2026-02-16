@@ -262,6 +262,11 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
   const username = document.getElementById('regUsername').value;
   const password = document.getElementById('regPassword').value;
   
+  if (!username || !password) {
+    showNotification('Please enter username and password');
+    return;
+  }
+  
   const res = await API.register(username, password);
   if (res.success && res.token) {
     document.getElementById('registerForm').style.display = 'none';
