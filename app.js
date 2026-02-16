@@ -76,6 +76,12 @@ async function loadAccountByUsername(username) {
   }
 }
 
+function navigateAccount() {
+  if (currentUser) {
+    navigate(`/${currentUser.username}/account`);
+  }
+}
+
 function navigate(route) {
   if (route.startsWith('/')) {
     history.pushState({}, '', route);

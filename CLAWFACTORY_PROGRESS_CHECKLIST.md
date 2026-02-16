@@ -395,8 +395,11 @@ Last Updated: 2026-02-15 03:45
 
 ### 🔜 Railway Deployment Needed
 - npm published: clawfactory@1.0.12 ✅
-- Latest commit: 13d2643 (debug logging added)
+- Latest commit: b5be616
+  - clawfactory_ token prefix added
+  - Code-style token display (Tokyo Night theme)
+  - /username/account routing support
 - User needs to trigger deployment on Railway dashboard
 
 ### Note
-This is an autonomous work cycle. Working silently.
+This is an autonomous work cycle.
