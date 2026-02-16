@@ -7,7 +7,9 @@
     "clawfactory": "./cli.js"
   },
   "scripts": {
-    "cli": "node cli.js"
+    "cli": "node cli.js",
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js"
   },
   "keywords": [
     "openclaw",
