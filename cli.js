@@ -39,83 +39,6 @@ async function fetchJson(url, opts = {}) {
   });
 }
 
-async function login() {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  
-  const username = await new Promise(r => rl.question('Username: ', r));
-  const password = await new Promise(r => rl.question('Password: ', r));
-  rl.close();
-
-  log('\nLogging in...', 'cyan');
-  const res = await fetchJson(`${API_BASE}/api/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  });
-
-  if (res.error) error(res.error);
-  saveToken(res.token);
-  log(`✅ Logged in as ${username}!`, 'green');
-}
-
-async function googleLogin() {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  
-  const googleId = await new Promise(r => rl.question('Google User ID: ', r));
-  const email = await new Promise(r => rl.question('Email: ', r));
-  const name = await new Promise(r => rl.question('Name: ', r));
-  rl.close();
-
-  log('\nLogging in with Google...', 'cyan');
-  const res = await fetchJson(`${API_BASE}/api/auth/google`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ googleId, email, name })
-  });
-
-  if (res.error) error(res.error);
-  saveToken(res.token);
-  log(`✅ Logged in as ${res.user.username}!`, 'green');
-}
-
-async function register() {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  const username = await new Promise(r => rl.question('Username: ', r));
-  const email = await new Promise(r => rl.question('Email (optional): ', r));
-  const password = await new Promise(r => rl.question('Password: ', r));
-  rl.close();
-
-  log('\nRegistering...', 'cyan');
-  const res = await fetchJson(`${API_BASE}/api/auth/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, email, password })
-  });
-
-  if (res.error) error(res.error);
-  saveToken(res.token);
-  log(`✅ Registered as ${username}!`, 'green');
-}
-
-async function logout() {
-  clearToken();
-  log('✅ Logged out!', 'green');
-}
-
-async function list() {
-  log('📦 Fetching copies...', 'cyan');
-  const copies = await fetchJson(`${API_BASE}/api/copies`);
-  if (!copies?.length) { log('No copies found.', 'yellow'); return; }
-  log(`\n🦞 Found ${copies.length} copies:\n`, 'green');
-  copies.forEach(c => {
-    console.log(`  ${COLORS.cyan}${c.id}${COLORS.reset}`);
-    console.log(`    ${c.name} by ${c.author}`);
-    console.log(`    ${c.description?.slice(0, 60)}...`);
-    console.log(`    ⭐ ${c.rating_average || 0} | 📦 ${c.install_count || 0} | ${c.category}`);
-    console.log('');
-  });
-}
-
 async function search(query) {
   if (!query) error('Usage: clawfactory search <query>');
   log(`🔍 Searching for "${query}"...`, 'cyan');
@@ -171,13 +94,13 @@ async function install(copyId) {
 
 async function upload() {
   const token = getToken();
-  if (!token) error('Please login first: clawfactory login');
+  if (!token) error('Please set CLAWFACTORY_TOKEN environment variable or save token to ~/.clawfactory/token');
 
   log('\n📤 Upload a copy\n', 'cyan');
 
   // Get user info first
   const userRes = await fetchJson(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
-  if (userRes.error) error('Session expired. Please login again.');
+  if (userRes.error) error('Session expired or invalid token.');
   const user = userRes.user;
 
   // Check for existing copies
@@ -274,169 +197,9 @@ async function upload() {
   log(`\n🔗 URL: ${API_BASE}/#/${user.username}/${res.id}`, 'cyan');
 }
 
-async function publish(dir = '.') {
-  const token = getToken();
-  if (!token) error('Please login first: clawfactory login');
-
-  const absDir = path.resolve(dir);
-  if (!fs.existsSync(absDir)) error(`Directory not found: ${absDir}`);
-
-  log(`\n📤 Publishing from: ${absDir}`, 'cyan');
-
-  // Read SKILL.md
-  let skillContent = '';
-  if (fs.existsSync(path.join(absDir, 'SKILL.md'))) {
-    try {
-      skillContent = fs.readFileSync(path.join(absDir, 'SKILL.md'), 'utf8');
-      log('📄 Found SKILL.md', 'cyan');
-    } catch (e) {
-      error(`Could not read SKILL.md: ${e.message}`);
-    }
-  } else {
-    error('SKILL.md not found in directory');
-  }
-
-  // Read SOUL.md if exists
-  let soulContent = '';
-  if (fs.existsSync(path.join(absDir, 'SOUL.md'))) {
-    try {
-      soulContent = fs.readFileSync(path.join(absDir, 'SOUL.md'), 'utf8');
-      log('📄 Found SOUL.md', 'cyan');
-    } catch (e) {
-      // Ignore
-    }
-  }
-
-  // Read AGENTS.md if exists
-  let agentsContent = '';
-  if (fs.existsSync(path.join(absDir, 'AGENTS.md'))) {
-    try {
-      agentsContent = fs.readFileSync(path.join(absDir, 'AGENTS.md'), 'utf8');
-      log('📄 Found AGENTS.md', 'cyan');
-    } catch (e) {
-      // Ignore
-    }
-  }
-
-  // Extract name and description from SKILL.md
-  const nameMatch = skillContent.match(/^# (.+)$/m);
-  const name = nameMatch ? nameMatch[1] : path.basename(absDir);
-
-  const description = skillContent.slice(0, 200).replace(/#+\s/g, '').trim() + '...';
-
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-
-  const category = await new Promise(r => rl.question(`Category [others]: `, r)) || 'others';
-  const skills = await new Promise(r => rl.question('Skills (comma-separated): ', r)) || '';
-  const tags = await new Promise(r => rl.question('Tags (comma-separated): ', r)) || '';
-  const isPrivate = (await new Promise(r => rl.question('Private? (y/n): ', r))) === 'y';
-
-  rl.close();
-
-  // Get user info
-  const userRes = await fetchJson(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
-  if (userRes.error) error('Session expired. Please login again.');
-  const user = userRes.user;
-
-  log('\n⬆️  Publishing...', 'cyan');
-
-  const files = { 'SKILL.md': skillContent };
-  if (soulContent) files['SOUL.md'] = soulContent;
-  if (agentsContent) files['AGENTS.md'] = agentsContent;
-
-  const copyId = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-
-  const res = await fetchJson(`${API_BASE}/api/copies`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({
-      copyId,
-      name,
-      description,
-      author: user.username,
-      category,
-      skills: skills.split(',').map(s => s.trim()).filter(Boolean),
-      tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-      files,
-      is_private: isPrivate,
-      user_id: user.id,
-      username: user.username
-    })
-  });
-
-  if (res.error) error(res.error);
-  log(`\n✅ ${res.isUpdate ? `Updated to v${res.version}` : 'Published'} ${res.id}`, 'green');
-  log(`\n🔗 URL: ${API_BASE}/#/${user.username}/${res.id}`, 'cyan');
-}
-
-async function info(copyId) {
-  if (!copyId) error('Usage: clawfactory info <copy-id>');
-  const copy = await fetchJson(`${API_BASE}/api/copies/${copyId}`);
-  if (copy.error) error(`Copy not found: ${copyId}`);
-
-  log(`\n🦞 ${copy.name}\n`, 'green');
-  console.log(`  ID: ${copy.id}`);
-  console.log(`  Author: ${copy.author} (${copy.username})`);
-  console.log(`  Version: ${copy.version}`);
-  console.log(`  Category: ${copy.category}`);
-  console.log(`  ⭐ ${copy.rating_average || 0} (${copy.rating_count || 0} ratings)`);
-  console.log(`  📦 ${copy.install_count || 0} installs`);
-  console.log(`  ${copy.description}`);
-  console.log(`\n  Skills: ${copy.skills?.join(', ')}`);
-  console.log(`\n  Files: ${Object.keys(copy.files || {}).join(', ')}`);
-}
-
-async function categories() {
-  const cats = await fetchJson(`${API_BASE}/api/categories`);
-  log('\n📁 Categories:\n', 'green');
-  cats.forEach(c => console.log(`  ${c.category}: ${c.count}`));
-}
-
-async function stats() {
-  const s = await fetchJson(`${API_BASE}/api/admin/stats`);
-  log('\n📊 Statistics:\n', 'green');
-  console.log(`  Total Copies: ${s.totalCopies}`);
-  console.log(`  Total Users: ${s.totalUsers}`);
-  console.log(`  Total Installs: ${s.totalInstalls}`);
-}
-
-async function mine() {
-  const token = getToken();
-  if (!token) error('Please login first: clawfactory login');
-
-  const isPrivate = args.includes('--private') || args.includes('-p');
-  
-  log(`\n📦 Your ${isPrivate ? 'private' : 'public'} copies:\n`, 'cyan');
-
-  const userRes = await fetchJson(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
-  if (userRes.error) error('Session expired. Please login again.');
-  const user = userRes.user;
-
-  const userPage = await fetchJson(`${API_BASE}/api/users/${user.username}`);
-  if (userPage.error) error('Could not fetch your copies');
-
-  const copies = (userPage.copies || []).filter(c => isPrivate ? c.is_private : !c.is_private);
-  
-  if (!copies.length) {
-    log(`You haven't uploaded any ${isPrivate ? 'private' : 'public'} copies yet.`, 'yellow');
-    return;
-  }
-
-  log(`Found ${copies.length} ${isPrivate ? 'private' : 'public'} copies:\n`, 'green');
-  copies.forEach(c => {
-    console.log(`  ${COLORS.cyan}${c.id}${COLORS.reset}`);
-    console.log(`    ${c.name} (v${c.version})`);
-    console.log(`    ⭐ ${c.rating_average || 0} | 📦 ${c.install_count || 0}`);
-    console.log('');
-  });
-}
-
 async function secretUpload(copyId) {
   const token = getToken();
-  if (!token) error('Please login first: clawfactory login');
+  if (!token) error('Please set CLAWFACTORY_TOKEN or save token');
 
   log('\n🔐 Upload with secrets\n', 'cyan');
 
@@ -468,7 +231,7 @@ async function secretUpload(copyId) {
 
   // Get user info
   const userRes = await fetchJson(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
-  if (userRes.error) error('Session expired. Please login again.');
+  if (userRes.error) error('Session expired or invalid token.');
   const user = userRes.user;
 
   log('\n⬆️  Uploading with secrets...', 'cyan');
@@ -560,6 +323,104 @@ async function secretInstall(copyId, secretKey) {
   }
 }
 
+async function publish(dir = '.') {
+  const token = getToken();
+  if (!token) error('Please set CLAWFACTORY_TOKEN or save token');
+
+  const absDir = path.resolve(dir);
+  if (!fs.existsSync(absDir)) error(`Directory not found: ${absDir}`);
+
+  log(`\n📤 Publishing from: ${absDir}`, 'cyan');
+
+  // Read SKILL.md
+  let skillContent = '';
+  if (fs.existsSync(path.join(absDir, 'SKILL.md'))) {
+    try {
+      skillContent = fs.readFileSync(path.join(absDir, 'SKILL.md'), 'utf8');
+      log('📄 Found SKILL.md', 'cyan');
+    } catch (e) {
+      error(`Could not read SKILL.md: ${e.message}`);
+    }
+  } else {
+    error('SKILL.md not found in directory');
+  }
+
+  // Read SOUL.md if exists
+  let soulContent = '';
+  if (fs.existsSync(path.join(absDir, 'SOUL.md'))) {
+    try {
+      soulContent = fs.readFileSync(path.join(absDir, 'SOUL.md'), 'utf8');
+      log('📄 Found SOUL.md', 'cyan');
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  // Read AGENTS.md if exists
+  let agentsContent = '';
+  if (fs.existsSync(path.join(absDir, 'AGENTS.md'))) {
+    try {
+      agentsContent = fs.readFileSync(path.join(absDir, 'AGENTS.md'), 'utf8');
+      log('📄 Found AGENTS.md', 'cyan');
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  // Extract name and description from SKILL.md
+  const nameMatch = skillContent.match(/^# (.+)$/m);
+  const name = nameMatch ? nameMatch[1] : path.basename(absDir);
+
+  const description = skillContent.slice(0, 200).replace(/#+\s/g, '').trim() + '...';
+
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+
+  const category = await new Promise(r => rl.question(`Category [others]: `, r)) || 'others';
+  const skills = await new Promise(r => rl.question('Skills (comma-separated): ', r)) || '';
+  const tags = await new Promise(r => rl.question('Tags (comma-separated): ', r)) || '';
+  const isPrivate = (await new Promise(r => rl.question('Private? (y/n): ', r))) === 'y';
+
+  rl.close();
+
+  // Get user info
+  const userRes = await fetchJson(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+  if (userRes.error) error('Session expired or invalid token.');
+  const user = userRes.user;
+
+  log('\n⬆️  Publishing...', 'cyan');
+
+  const files = { 'SKILL.md': skillContent };
+  if (soulContent) files['SOUL.md'] = soulContent;
+  if (agentsContent) files['AGENTS.md'] = agentsContent;
+
+  const copyId = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
+  const res = await fetchJson(`${API_BASE}/api/copies`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      copyId,
+      name,
+      description,
+      author: user.username,
+      category,
+      skills: skills.split(',').map(s => s.trim()).filter(Boolean),
+      tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+      files,
+      is_private: isPrivate,
+      user_id: user.id,
+      username: user.username
+    })
+  });
+
+  if (res.error) error(res.error);
+  log(`\n✅ ${res.isUpdate ? `Updated to v${res.version}` : 'Published'} ${res.id}`, 'green');
+  log(`\n🔗 URL: ${API_BASE}/#/${user.username}/${res.id}`, 'cyan');
+}
+
 function showHelp() {
   console.log(`
 🦞 ClawFactory CLI - OpenClaw Copy Registry
@@ -568,38 +429,25 @@ ${COLORS.green}Usage:${COLORS.reset}
   clawfactory <command> [options]
 
 ${COLORS.green}Commands:${COLORS.reset}
-  login                    Login with username/password
-  google                   Login with Google
-  register                 Create a new account
-  logout                   Log out
-  list                     List all public copies
-  search <query>          Search for copies
-  install <copy-id>        Install a copy to your system
+  install <copy-id>        Install a copy
   copy <copy-id>           Alias for install
   hottest                 Install the top-rated copy
-  upload                   Upload a public copy
-  publish [dir]            Publish local directory (default: current dir)
-  secret upload            Upload with .env secrets (encrypted)
-  secret install <id> <key> Install encrypted copy with secret key
-  mine                     List your public copies
-  mine --private           List your private copies
-  info <copy-id>           Show copy details
-  categories                List all categories
-  stats                    Show statistics
+  search <query>          Search for copies
+  upload                   Upload a copy (requires token)
+  publish [dir]            Publish local directory
+  secret upload            Upload with .env secrets
+  secret install <id> <key> Install encrypted copy
+
+${COLORS.green}Setup:${COLORS.reset}
+  Export your token from clawfactory.ai:
+    export CLAWFACTORY_TOKEN=your-token
 
 ${COLORS.green}Examples:${COLORS.reset}
-  clawfactory list
-  clawfactory search trading
   clawfactory install polymarket-trader
   clawfactory copy polymarket-trader
   clawfactory hottest
-  clawfactory mine
-  clawfactory mine --private
+  clawfactory search trading
   clawfactory secret upload
-  clawfactory secret-install mycopy abc123-key
-
-${COLORS.green}Environment:${COLORS.reset}
-  CLAWFACTORY_API         API server URL (default: https://clawfactory.ai)
 
 ${COLORS.green}Website:${COLORS.reset}
   https://clawfactory.ai
@@ -610,15 +458,10 @@ const args = process.argv.slice(2);
 const cmd = args[0] || 'help';
 
 switch (cmd) {
-  case 'login': login(); break;
-  case 'google': googleLogin(); break;
-  case 'register': register(); break;
-  case 'logout': logout(); break;
-  case 'list': case 'ls': list(); break;
-  case 'search': case 's': search(args[1]); break;
   case 'install': case 'add': case 'i': install(args[1]); break;
   case 'copy': copy(args[1]); break;
   case 'hottest': hottest(); break;
+  case 'search': case 's': search(args[1]); break;
   case 'upload': upload(); break;
   case 'publish': case 'pub': publish(args[1] || '.'); break;
   case 'secret': 
@@ -626,12 +469,8 @@ switch (cmd) {
     else if (args[1] === 'install') secretInstall(args[2], args[3]);
     else showHelp();
     break;
-  case 'secret-upload': secretUpload(); break;  // backward compat
-  case 'secret-install': case 'secret-i': secretInstall(args[1], args[2]); break;
-  case 'mine': mine(); break;
-  case 'info': case 'show': info(args[1]); break;
-  case 'categories': case 'cats': categories(); break;
-  case 'stats': stats(); break;
+  case 'secret-upload': secretUpload(); break;
+  case 'secret-install': secretInstall(args[1], args[2]); break;
   case 'help': case '--help': case '-h': showHelp(); break;
   default: log(`Unknown command: ${cmd}`, 'red'); showHelp();
 }

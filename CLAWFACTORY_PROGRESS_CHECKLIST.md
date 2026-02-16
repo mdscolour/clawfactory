@@ -355,6 +355,10 @@ Last Updated: 2026-02-15 03:45
 - Google OAuth button testing
 - Full user flow testing
 
+### 🔜 Waiting for npm publish
+- User needs to run: `npm login` then `npm publish`
+- OTP (2FA) required
+
 ### ✅ CLI Commands (2026-02-16)
 - `clawfactory upload` - Upload public copy
 - `clawfactory install <id>` - Install public copy
@@ -363,10 +367,26 @@ Last Updated: 2026-02-15 03:45
 - `clawfactory mine` - List public copies
 - `clawfactory mine --private` - List private copies
 - Model field support added
+- npm published: clawfactory@1.0.9
 
-### 🔜 Waiting for npm publish
-- User needs to run: `npm login` then `npm publish`
-- OTP (2FA) required
+### ✅ Today (2026-02-16)
+- Fixed CLI syntax errors (crypto.createCipheriv parentheses)
+- Updated Website URL to https://clawfactory.ai
+- Added model field to upload form (above category)
+- Updated helper text: "Model settings are NOT copied. Use `openclaw config` to configure manually."
+- Published to npm: clawfactory@1.0.9
+
+### 🚨 CLI Issue - Old Version Caching
+- Old version at `~/.clawfactory/bin/clawfactory` (from Feb 14)
+- User's terminal has cached old version
+- Solution: User needs to run `hash -r` or open new terminal
+- Latest version is correct at `/opt/homebrew/lib/node_modules/clawfactory/cli.js`
+- npm package clawfactory@1.0.9 is correct
+
+### 🔜 Next Steps (After CLI Fixed)
+1. Test secret upload/install commands
+2. Test model field in upload
+3. Test Railway deployment
 
 ### Note
-This is an autonomous work cycle. No message will be sent unless significant progress is made.
+This is an autonomous work cycle. Working silently on odd run.
