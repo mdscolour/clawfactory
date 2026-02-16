@@ -1,6 +1,6 @@
 {
   "name": "clawfactory",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "OpenClaw Copy Registry CLI - Install and share OpenClaw configurations",
   "main": "cli.js",
   "scripts": {
