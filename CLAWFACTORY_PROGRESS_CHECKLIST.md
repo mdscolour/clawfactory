@@ -388,10 +388,7 @@ Last Updated: 2026-02-15 03:45
 - Token saved to localStorage for CLI use
 - Copy Token button added
 - Register success → navigates to My Copies page
-- Fixed API.register password issue (ebbb0b2)
-- Fixed register page not showing (7647cbe)
-- Fixed copy detail showing on every page (cd3c17a)
-- Improved register flow UI (2ceb18f)
+- handlePrivateUpload function added (70e05d5)
 
 ### 🔜 npm publish blocked
 - Git working directory not clean (user needs to commit first)
