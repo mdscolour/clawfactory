@@ -327,7 +327,7 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     if (currentUser) {
       updateAuthUI();
       showNotification('Token saved!');
-      switchPage('home');
+      navigate(`/${currentUser.username}/account`);
     } else {
       showNotification('Invalid token: ' + (currentUser?.error || 'User not found'));
     }
@@ -344,7 +344,8 @@ document.getElementById('loginPasswordForm')?.addEventListener('submit', async (
   if (res.success && res.token) {
     updateAuthUI();
     showNotification('Logged in!');
-    switchPage('home');
+    // Navigate to user's account page
+    navigate(`/${username}/account`);
   } else {
     showNotification('Login failed: ' + (res.error || res.message || 'Unknown error'));
   }
@@ -379,7 +380,9 @@ function saveTokenAndContinue() {
     checkAuth().then(() => {
       updateAuthUI();
       showNotification('Registered! Token saved!');
-      switchPage('my-copies');
+      // Navigate to account page
+      const username = currentUser?.username || 'user';
+      navigate(`/${username}/account`);
     });
   }
 }
