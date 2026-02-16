@@ -11,26 +11,41 @@ async function init() {
   handleRoute();
 }
 
-// Simple hash-based routing
-function handleRoute() {
+// Path-first routing (supports /username/slug), with hash fallback
+function getCurrentRoute() {
+  const pathname = window.location.pathname || '/';
+  // Use clean path route when present and not a file path
+  if (pathname !== '/' && !pathname.includes('.')) return pathname;
+
+  // Fallback to hash route for backward compatibility
   const hash = window.location.hash.slice(1) || '/';
-  const parts = hash.split('/').filter(Boolean);
-  
+  return hash;
+}
+
+function handleRoute() {
+  const route = getCurrentRoute();
+  const normalized = route.replace(/^\/+/, '');
+  const parts = normalized.split('/').filter(Boolean);
+
   if (parts.length === 2 && !parts[0].startsWith('page')) {
     // User copy page: /username/copySlug
     showUserCopyPage(parts[0], parts[1]);
-  } else if (parts.length === 1 && !parts[0].startsWith('page')) {
+  } else if (parts.length === 1 && !parts[0].startsWith('page') && route !== '/') {
     // User page: /username
     showUserPage(parts[0]);
-  } else if (hash === '/') {
+  } else if (route === '/') {
     switchPage('home');
-  } else if (hash.startsWith('page=')) {
-    switchPage(hash.replace('page=', ''));
+  } else if (route.startsWith('page=')) {
+    switchPage(route.replace('page=', ''));
   }
 }
 
-function navigate(hash) {
-  window.location.hash = hash;
+function navigate(route) {
+  if (route.startsWith('/')) {
+    history.pushState({}, '', route);
+  } else {
+    window.location.hash = route;
+  }
   handleRoute();
 }
 
@@ -187,8 +202,9 @@ async function loadAllCopies(category = '') {
 
 function renderCopyCard(copy) {
   const skills = copy.skills?.slice(0, 3).join(', ') || '';
+  const username = copy.username || copy.owner_username || '';
   return `
-    <div class="copy-card" onclick="showCopyDetail('${copy.id}')">
+    <div class="copy-card" onclick="openCopyPage('${username}', '${copy.id}')">
       <h3>${copy.name}</h3>
       <p class="copy-author">by ${copy.author}</p>
       <p class="copy-desc">${copy.description?.slice(0, 100)}...</p>
@@ -200,6 +216,15 @@ function renderCopyCard(copy) {
       ${skills ? `<div class="copy-skills">${skills}</div>` : ''}
     </div>
   `;
+}
+
+function openCopyPage(username, copyId) {
+  if (username && copyId) {
+    navigate(`/${encodeURIComponent(username)}/${encodeURIComponent(copyId)}`);
+    return;
+  }
+  // Fallback for legacy data without username
+  showCopyDetail(copyId);
 }
 
 async function showCopyDetail(id) {
@@ -419,8 +444,11 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('[App] Starting...');
     init();
   }, 100);
-  
-  // FIX: Add click handlers to nav links
+
+  // Browser back/forward support for path-based routes
+  window.addEventListener('popstate', handleRoute);
+
+  // Keep nav clicks robust
   document.querySelectorAll('.nav-link[data-page]').forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
@@ -431,6 +459,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
-  
+
   console.log('[App] Nav click handlers added');
 });

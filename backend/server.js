@@ -359,6 +359,14 @@ const httpServer = http.createServer((req, res) => {
         res.end(fs.readFileSync(fullPath));
         return;
       }
+
+      // SPA fallback for clean routes like /username/slug
+      const indexPath = path.join(FRONTEND_DIR, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(fs.readFileSync(indexPath));
+        return;
+      }
     } catch (e) {}
   }
 
