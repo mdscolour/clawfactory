@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 const readline = require('readline');
+const crypto = require('crypto');
 
 const API_BASE = process.env.CLAWFACTORY_API || 'https://clawfactory.ai';
 const DATA_DIR = path.join(process.env.HOME, '.clawfactory');
@@ -400,6 +401,161 @@ async function stats() {
   console.log(`  Total Installs: ${s.totalInstalls}`);
 }
 
+async function mine() {
+  const token = getToken();
+  if (!token) error('Please login first: clawfactory login');
+
+  log('\n📦 Your copies:\n', 'cyan');
+
+  const userRes = await fetchJson(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+  if (userRes.error) error('Session expired. Please login again.');
+  const user = userRes.user;
+
+  const userPage = await fetchJson(`${API_BASE}/api/users/${user.username}`);
+  if (userPage.error) error('Could not fetch your copies');
+
+  const copies = userPage.copies || [];
+  if (!copies.length) {
+    log('You haven\'t uploaded any copies yet.', 'yellow');
+    log('Use "clawfactory upload" to publish your first copy!', 'cyan');
+    return;
+  }
+
+  log(`Found ${copies.length} copies:\n`, 'green');
+  copies.forEach(c => {
+    console.log(`  ${COLORS.cyan}${c.id}${COLORS.reset}`);
+    console.log(`    ${c.name} (v${c.version})`);
+    console.log(`    ⭐ ${c.rating_average || 0} | 📦 ${c.install_count || 0} | ${c.is_private ? '🔒 Private' : '🌐 Public'}`);
+    console.log('');
+  });
+}
+
+async function secretUpload(copyId) {
+  const token = getToken();
+  if (!token) error('Please login first: clawfactory login');
+
+  log('\n🔐 Upload with secrets\n', 'cyan');
+
+  // Check for .env file
+  const envPath = path.join(process.cwd(), '.env');
+  if (!fs.existsSync(envPath)) {
+    error('.env file not found in current directory');
+  }
+
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  log('Found .env file', 'cyan');
+
+  // Encrypt secrets
+  const secretKey = crypto.randomBytes(32).toString('hex');
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(secretKey.padEnd(32).slice(0, 32), iv);
+  let encrypted = cipher.update(envContent, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+
+  const encryptedData = iv.toString('hex') + ':' + encrypted;
+
+  log('🔒 Secrets encrypted', 'green');
+
+  // Read SKILL.md if exists
+  let skillContent = '';
+  if (fs.existsSync('SKILL.md')) {
+    skillContent = fs.readFileSync('SKILL.md', 'utf8');
+  }
+
+  // Get user info
+  const userRes = await fetchJson(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+  if (userRes.error) error('Session expired. Please login again.');
+  const user = userRes.user;
+
+  log('\n⬆️  Uploading with secrets...', 'cyan');
+
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const name = await new Promise(r => rl.question('Copy name: ', r));
+  const description = await new Promise(r => rl.question('Description: ', r));
+  const category = await new Promise(r => rl.question('Category: ', r)) || 'others';
+  const skills = await new Promise(r => rl.question('Skills (comma-separated): ', r));
+  rl.close();
+
+  const id = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
+  const res = await fetchJson(`${API_BASE}/api/copies`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      copyId: id,
+      name,
+      description,
+      author: user.username,
+      category,
+      skills: skills.split(',').map(s => s.trim()).filter(Boolean),
+      files: { 'SKILL.md': skillContent || `# ${name}\n\n${description}` },
+      has_secrets: true,
+      encrypted_secrets: encryptedData,
+      is_private: false,
+      user_id: user.id,
+      username: user.username
+    })
+  });
+
+  if (res.error) error(res.error);
+
+  log(`\n✅ Uploaded with secrets!`, 'green');
+  log(`\n🔑 SAVE THIS KEY - You'll need it to install:\n${COLORS.yellow}${secretKey}${COLORS.reset}`, 'green');
+  log(`\n🔗 URL: ${API_BASE}/#/${user.username}/${res.id}`, 'cyan');
+  log('\n⚠️  The secret key is shown ONLY once. Save it somewhere safe!', 'yellow');
+}
+
+async function secretInstall(copyId, secretKey) {
+  if (!copyId) error('Usage: clawfactory secret-install <copy-id> <secret-key>');
+  if (!secretKey) error('Usage: clawfactory secret-install <copy-id> <secret-key>');
+
+  log(`🔓 Installing encrypted copy "${copyId}"...`, 'cyan');
+
+  const copy = await fetchJson(`${API_BASE}/api/copies/${copyId}`);
+  if (copy.error) error(`Copy not found: ${copyId}`);
+
+  if (!copy.has_secrets) {
+    error('This copy does not have secrets. Use "clawfactory install" instead.');
+  }
+
+  if (!copy.encrypted_secrets) {
+    error('Encrypted secrets not found for this copy.');
+  }
+
+  try {
+    // Decrypt
+    const [ivHex, encrypted] = copy.encrypted_secrets.split(':');
+    const iv = Buffer.from(ivHex, 'hex');
+    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(secretKey.padEnd(32).slice(0, 32), iv);
+    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+
+    // Save .env
+    const envPath = path.join(DATA_DIR, 'copies', copyId, '.env');
+    fs.mkdirSync(path.dirname(envPath), { recursive: true });
+    fs.writeFileSync(envPath, decrypted);
+    log(`  📄 .env`, 'yellow');
+
+    // Save regular files
+    const files = copy.files ? (typeof copy.files === 'string' ? JSON.parse(copy.files) : copy.files) : {};
+    for (const [filename, content] of Object.entries(files || {})) {
+      fs.writeFileSync(path.join(DATA_DIR, 'copies', copyId, filename), content);
+      log(`  📄 ${filename}`, 'yellow');
+    }
+
+    // Track install
+    await fetchJson(`${API_BASE}/api/copies/${copyId}/install`, { method: 'POST' });
+
+    log(`\n✅ Installed to ${path.join(DATA_DIR, 'copies', copyId)}`, 'green');
+    log('\n🔐 Secrets decrypted and saved to .env', 'green');
+  } catch (e) {
+    error(`Decryption failed. Check your secret key: ${e.message}`);
+  }
+}
+
 function showHelp() {
   console.log(`
 🦞 ClawFactory CLI - OpenClaw Copy Registry
@@ -416,9 +572,12 @@ ${COLORS.green}Commands:${COLORS.reset}
   search <query>          Search for copies
   install <copy-id>       Install a copy to your system
   copy <copy-id>          Alias for install
-  hottest                  Install the top-rated copy
+  hottest                 Install the top-rated copy
   upload                   Upload a new copy (login required)
   publish [dir]           Publish local directory (default: current dir)
+  secret-upload            Upload with .env secrets (encrypted)
+  secret-install <id> <key> Install encrypted copy with secret key
+  mine                    List your uploaded copies
   info <copy-id>          Show copy details
   categories               List all categories
   stats                    Show statistics
@@ -429,6 +588,9 @@ ${COLORS.green}Examples:${COLORS.reset}
   clawfactory install polymarket-trader
   clawfactory copy polymarket-trader
   clawfactory hottest
+  clawfactory mine
+  clawfactory secret-upload
+  clawfactory secret-install mycopy abc123-key
 
 ${COLORS.green}Environment:${COLORS.reset}
   CLAWFACTORY_API         API server URL (default: https://clawfactory.ai)
@@ -453,6 +615,9 @@ switch (cmd) {
   case 'hottest': hottest(); break;
   case 'upload': upload(); break;
   case 'publish': case 'pub': publish(args[1] || '.'); break;
+  case 'secret-upload': secretUpload(); break;
+  case 'secret-install': case 'secret-i': secretInstall(args[1], args[2]); break;
+  case 'mine': mine(); break;
   case 'info': case 'show': info(args[1]); break;
   case 'categories': case 'cats': categories(); break;
   case 'stats': stats(); break;
