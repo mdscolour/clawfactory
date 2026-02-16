@@ -9,6 +9,7 @@ import { WebSocketServer } from 'ws';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
@@ -134,7 +135,6 @@ function parseJson(str, defaultVal = null) {
   try { return JSON.parse(str); } catch { return defaultVal; }
 }
 
-const crypto = require('crypto');
 const salt = 'clawfactory-2024';
 
 function hashPassword(password) {
