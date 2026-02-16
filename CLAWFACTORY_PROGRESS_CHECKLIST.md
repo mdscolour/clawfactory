@@ -402,9 +402,22 @@ Last Updated: 2026-02-15 03:45
 - Backend login: `[Login] Success!` ✅
 - Backend `/api/auth/me` now supports clawfactory_xxx token format ✅
 
-### 🔜 Railway Deployment Needed
-- Latest commit: 46eba60 (fix token format support)
-- User needs to redeploy to apply fix
+### 🔜 Railway Deployment Issue
+- railway.json fixed: rootDirectory changed to "" ✅
+- useBackend fallback added to api.js ✅
+- But Railway keeps serving old cached code
+- Multiple deployments triggered but frontend not updating
+- Possibly Railway CDN/cache issue
+
+### Workaround
+User can use browser console to fix:
+```js
+if (window.CLAWFACTORY_API) {
+  window.CLAWFACTORY_API.useBackend = true;
+  window.CLAWFACTORY_API.baseUrl = '';
+  location.reload();
+}
+```
 
 ### Note
 This is an autonomous work cycle. Working silently.
