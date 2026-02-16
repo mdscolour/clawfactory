@@ -1,5 +1,5 @@
 // ClawFactory App - Phase 6
-// Simplified app with user system and new UI
+// Simplified app with token-based auth
 
 let currentUser = null;
 let pageHistory = [];
@@ -14,10 +14,7 @@ async function init() {
 // Path-first routing (supports /username/slug), with hash fallback
 function getCurrentRoute() {
   const pathname = window.location.pathname || '/';
-  // Use clean path route when present and not a file path
   if (pathname !== '/' && !pathname.includes('.')) return pathname;
-
-  // Fallback to hash route for backward compatibility
   const hash = window.location.hash.slice(1) || '/';
   return hash;
 }
@@ -28,10 +25,8 @@ function handleRoute() {
   const parts = normalized.split('/').filter(Boolean);
 
   if (parts.length === 2 && !parts[0].startsWith('page')) {
-    // User copy page: /username/copySlug
     showUserCopyPage(parts[0], parts[1]);
   } else if (parts.length === 1 && !parts[0].startsWith('page') && route !== '/') {
-    // User page: /username
     showUserPage(parts[0]);
   } else if (route === '/') {
     switchPage('home');
@@ -50,35 +45,25 @@ function navigate(route) {
 }
 
 function goBack() {
-  // Try page history first
   if (pageHistory.length > 0) {
     const prev = pageHistory.pop();
     window.location.hash = prev;
     handleRoute();
     return;
   }
-  
-  // Try document.referrer
   if (document.referrer && document.referrer.includes(window.location.host)) {
     window.history.back();
     return;
   }
-  
-  // Smart fallback based on current URL
   const currentHash = window.location.hash.slice(1) || '/';
   const parts = currentHash.split('/').filter(Boolean);
-  
   if (currentHash.startsWith('page=')) {
-    // If on a page, go home
     navigate('/');
   } else if (parts.length >= 2) {
-    // If on user copy page (/username/copySlug), go back to user page
     navigate(`/${parts[0]}`);
   } else if (parts.length === 1 && parts[0]) {
-    // If on user page (/username), go home
     navigate('/');
   } else {
-    // Already on home
     navigate('/');
   }
 }
@@ -98,11 +83,11 @@ async function showUserPage(username) {
   
   const list = document.getElementById('userCopiesList');
   if (!data.copies?.length) {
-    list.innerHTML = '<p class="empty-message">No public copies yet.</p>';
+    list.innerHTML = '<p>No public copies yet.</p>';
     return;
   }
   
-  list.innerHTML = data.copies.map(c => renderCopyCard(c)).join('');
+  list.innerHTML = `<div class="copy-grid">${data.copies.map(c => renderCopyCard(c)).join('')}</div>`;
 }
 
 async function showUserCopyPage(username, copySlug) {
@@ -122,14 +107,12 @@ async function showUserCopyPage(username, copySlug) {
   const skills = (copy.skills || []).join(', ');
   const files = Object.keys(copy.files || {});
   
-  const detail = document.getElementById('userCopyDetail');
-  detail.innerHTML = `
+  document.getElementById('userCopyDetail').innerHTML = `
     <article class="copy-detail copy-detail-page">
       <div class="copy-hero">
         <p class="copy-author">by <a href="/${username}" onclick="navigate('/${username}'); return false;">@${username}</a></p>
         <h2>${copy.name}</h2>
         <p class="copy-description">${copy.description || ''}</p>
-
         <div class="copy-meta">
           <span>⭐ ${copy.rating_average || 0}</span>
           <span>📦 ${copy.install_count || 0}</span>
@@ -137,10 +120,8 @@ async function showUserCopyPage(username, copySlug) {
           ${copy.model ? `<span>🤖 ${copy.model}</span>` : ''}
           <span>v${copy.version || '1.0.0'}</span>
         </div>
-
         ${skills ? `<div class="copy-skills">${skills}</div>` : ''}
       </div>
-
       <div class="install-panel">
         <h3>Install</h3>
         <div class="install-command-box">
@@ -148,219 +129,80 @@ async function showUserCopyPage(username, copySlug) {
           <button class="btn btn-primary" onclick="copyInstallCommand('${copy.id}')">Copy command</button>
         </div>
       </div>
-
       <div class="copy-actions">
         <button class="btn btn-secondary" onclick="rateCopy('${copy.id}')">Rate</button>
       </div>
-
       <h3>Files</h3>
       <pre>${files.length ? files.join('\n') : 'No files listed'}</pre>
     </article>
   `;
 }
 
-function checkAuth() {
+async function checkAuth() {
   const token = localStorage.getItem('clawfactory_token');
   if (token) {
     API.setToken(token);
-    API.getMe().then(res => {
-      if (res.user) {
-        currentUser = res.user;
-        updateAuthUI();
-      } else {
-        localStorage.removeItem('clawfactory_token');
-      }
-    });
+    const res = await API.getMe();
+    if (res.user) currentUser = res.user;
   }
+  updateAuthUI();
 }
 
 function updateAuthUI() {
   const loginLink = document.getElementById('loginLink');
-  const registerLink = document.getElementById('registerLink');
-  const userDisplay = document.getElementById('userDisplay');
   const logoutBtn = document.getElementById('logoutBtn');
+  const userDisplay = document.getElementById('userDisplay');
 
   if (currentUser) {
     loginLink.style.display = 'none';
-    registerLink.style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
     userDisplay.style.display = 'inline';
     userDisplay.textContent = `Hi, ${currentUser.username}`;
-    logoutBtn.style.display = 'inline-block';
   } else {
     loginLink.style.display = 'inline';
-    registerLink.style.display = 'inline';
-    userDisplay.style.display = 'none';
     logoutBtn.style.display = 'none';
+    userDisplay.style.display = 'none';
   }
 }
 
 function logout() {
-  localStorage.removeItem('clawfactory_token');
   currentUser = null;
+  localStorage.removeItem('clawfactory_token');
+  API.setToken(null);
   updateAuthUI();
+  showNotification('Logged out');
   switchPage('home');
-  showNotification('Logged out!');
 }
 
-async function loadFeaturedCopies() {
-  console.log('[App] Loading featured copies...');
-  try {
-    const featured = await API.getFeatured();
-    console.log('[App] Featured:', featured);
-    const container = document.getElementById('popularCopies');
-    
-    if (!featured?.length) {
-      container.innerHTML = '<p class="empty-message">No copies yet. Be the first to upload!</p>';
-      return;
-    }
-    container.innerHTML = featured.map(c => renderCopyCard(c)).join('');
-    console.log('[App] Rendered', featured.length, 'featured copies');
-  } catch (err) {
-    console.error('[App] Error loading featured:', err);
-  }
-}
-
-async function loadCategories() {
-  const categories = await API.getCategories();
-  const chips = document.getElementById('categoryChips');
-  const grid = document.getElementById('categoryGrid');
-  
-  chips.innerHTML = '<span class="chip active" data-category="">All</span>' +
-    categories.map(c => `<span class="chip" data-category="${c.category}">${c.category} (${c.count})</span>`).join('');
-  
-  grid.innerHTML = categories.map(c => `
-    <div class="category-card" onclick="showCategory('${c.category}')">
-      <h3>${c.category}</h3>
-      <p>${c.count} copies</p>
-    </div>
-  `).join('');
-}
-
-async function loadAllCopies(category = '') {
-  const copies = await API.getCopies();
-  const filtered = category ? copies.filter(c => c.category === category) : copies;
-  const container = document.getElementById('allCopies');
-  container.innerHTML = filtered.length ? filtered.map(c => renderCopyCard(c)).join('') : '<p class="empty-message">No copies found.</p>';
-}
-
-function renderCopyCard(copy) {
-  const skills = copy.skills?.slice(0, 3).join(', ') || '';
-  const username = copy.username || copy.owner_username || '';
-  return `
-    <div class="copy-card" onclick="openCopyPage('${username}', '${copy.id}')">
-      <h3>${copy.name}</h3>
-      <p class="copy-author">by ${copy.author}</p>
-      <p class="copy-desc">${copy.description?.slice(0, 100)}...</p>
-      <div class="copy-meta">
-        <span>⭐ ${copy.rating_average || 0}</span>
-        <span>📦 ${copy.install_count || 0}</span>
-        <span>${copy.category}</span>
-      </div>
-      ${skills ? `<div class="copy-skills">${skills}</div>` : ''}
-    </div>
-  `;
-}
-
-function openCopyPage(username, copyId) {
-  if (username && copyId) {
-    navigate(`/${encodeURIComponent(username)}/${encodeURIComponent(copyId)}`);
-    return;
-  }
-  // Fallback for legacy data without username
-  showCopyDetail(copyId);
-}
-
-async function showCopyDetail(id) {
-  const copy = await API.getCopy(id);
-  if (copy.error) { showNotification(copy.error); return; }
-
-  const modal = document.getElementById('copyModal');
-  const body = document.getElementById('modalBody');
-  
-  body.innerHTML = `
-    <h2>${copy.name}</h2>
-    <p class="copy-author">by ${copy.author}</p>
-    <p>${copy.description}</p>
-    <div class="copy-meta">
-      <span>⭐ ${copy.rating_average || 0}</span>
-      <span>📦 ${copy.install_count || 0}</span>
-      <span>${copy.category}</span>
-    </div>
-    <div class="copy-skills">${copy.skills?.join(', ')}</div>
-    <div class="copy-actions">
-      <button class="btn btn-primary" onclick="installCopy('${copy.id}')">Install</button>
-      <button class="btn btn-secondary" onclick="rateCopy('${copy.id}')">Rate</button>
-    </div>
-    <h3>Files</h3>
-    <pre>${Object.keys(copy.files || {}).join('\n')}</pre>
-  `;
-  
-  modal.classList.add('active');
-}
-
-function closeModal() {
-  document.getElementById('copyModal').classList.remove('active');
-}
-
-function installCopy(id) {
-  const cmd = `clawfactory install ${id}`;
-  navigator.clipboard.writeText(cmd).then(() => showNotification('Command copied!'));
-  showNotification(`Run: ${cmd}`);
-}
-
-function copyInstallCommand(id) {
-  const cmd = `clawfactory install ${id}`;
-  navigator.clipboard.writeText(cmd).then(() => showNotification('Install command copied!'));
-}
-
-function rateCopy(id) {
-  const rating = prompt('Rate this copy (1-5):');
-  if (rating && currentUser) {
-    API.rateCopy(id, parseInt(rating)).then(() => showNotification('Rating saved!'));
-  } else if (!currentUser) {
-    showNotification('Please login first');
-  }
-}
-
-function showCategory(category) {
-  switchPage('copies');
-  loadAllCopies(category);
-  document.querySelectorAll('.chip').forEach(c => {
-    c.classList.toggle('active', c.dataset.category === category);
-  });
-}
-
-async function handleSearch(query) {
-  if (!query) {
-    document.getElementById('searchResults').innerHTML = '';
-    return;
-  }
-  const results = await API.search(query);
-  document.getElementById('searchResults').innerHTML = results.length ? results.map(c => renderCopyCard(c)).join('') : '<p class="empty-message">No results.</p>';
-}
-
-function handlePrivateUpload() {
+async function rateCopy(copyId) {
   if (!currentUser) {
     showNotification('Please login first');
     switchPage('login');
     return;
   }
-  switchPage('upload');
+  const rating = prompt('Rate (1-5 stars):', '5');
+  if (!rating) return;
+  const res = await API.rateCopy(copyId, parseInt(rating));
+  if (res.success) showNotification('Rating saved!');
+  else showNotification(res.error || 'Failed to save rating');
 }
 
-// Page switching
-const pages = ['home', 'copies', 'categories', 'search', 'upload', 'login', 'register', 'my-copies'];
+function copyInstallCommand(copyId) {
+  const cmd = `clawfactory install ${copyId}`;
+  navigator.clipboard?.writeText(cmd);
+  showNotification('Command copied!');
+}
+
+const pages = ['home', 'copies', 'categories', 'search', 'upload', 'login', 'my-copies'];
 
 function switchPage(page) {
   pages.forEach(p => {
     const el = document.getElementById(`${p}Page`);
     if (el) el.style.display = p === page ? 'block' : 'none';
   });
-  
   document.querySelectorAll('.nav-link').forEach(l => {
     l.classList.toggle('active', l.dataset.page === page);
   });
-
   if (page === 'copies') loadAllCopies();
   if (page === 'my-copies') loadMyCopies();
   if (page === 'home') loadFeaturedCopies();
@@ -384,37 +226,27 @@ function showNotification(msg) {
   setTimeout(() => { n.style.opacity='0'; setTimeout(()=>n.remove(),300); }, 3000);
 }
 
-// Form handlers
 document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const res = await API.login(document.getElementById('loginUsername').value);
-  if (res.success) {
-    currentUser = res.user;
-    updateAuthUI();
-    showNotification('Logged in!');
-    switchPage('home');
-  } else {
-    showNotification(res.error || 'Login failed');
+  const token = document.getElementById('loginToken').value.trim();
+  if (!token) {
+    showNotification('Please enter your token');
+    return;
   }
-});
-
-document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const res = await API.register(document.getElementById('regUsername').value, document.getElementById('regEmail').value, document.getElementById('regPassword').value);
-  if (res.success) {
-    currentUser = res.user;
-    updateAuthUI();
-    showNotification('Registered!');
+  localStorage.setItem('clawfactory_token', token);
+  API.setToken(token);
+  await checkAuth();
+  if (currentUser) {
+    showNotification('Token saved!');
     switchPage('home');
   } else {
-    showNotification(res.error || 'Registration failed');
+    showNotification('Invalid token');
   }
 });
 
 document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!currentUser) { showNotification('Please login first'); switchPage('login'); return; }
-  
   const copy = await API.createCopy({
     name: document.getElementById('copyName').value,
     description: document.getElementById('copyDescription').value,
@@ -426,7 +258,6 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
     files: { 'SKILL.md': document.getElementById('copyName').value },
     isPrivate: document.getElementById('copyPrivate').checked
   });
-
   if (copy.success) {
     showNotification(copy.isUpdate ? 'Copy updated!' : 'Copy created!');
     switchPage('home');
@@ -435,79 +266,88 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
   }
 });
 
-// Google Login (requires Google OAuth setup)
-async function googleLogin() {
-  // Check if Google Identity Services is loaded
-  if (typeof google !== 'undefined' && google.accounts) {
-    // Use Google Identity Services
-    google.accounts.id.initialize({
-      client_id: window.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID',
-      callback: handleGoogleResponse
-    });
-    google.accounts.id.renderButton(
-      document.querySelector('.btn-google'),
-      { theme: 'outline', size: 'large' }
-    );
-    google.accounts.id.prompt();
-  } else {
-    // Fallback: manual token entry for testing
-    const token = prompt('Enter Google ID token (for testing):');
-    if (token) {
-      // In production, verify token with Google
-      // For now, use mock login
-      await mockGoogleLogin(token);
-    }
-  }
-}
-
-async function handleGoogleResponse(response) {
-  await mockGoogleLogin(response.credential);
-}
-
-async function mockGoogleLogin(credential) {
-  // In production, decode and verify JWT
-  // For demo, parse basic claims
-  try {
-    const parts = credential.split('.');
-    if (parts.length !== 3) {
-      // Mock data for testing
-      await API.googleAuth('mock-google-id', 'user@gmail.com', 'Google User');
-      return;
-    }
-    const payload = JSON.parse(atob(parts[1]));
-    await API.googleAuth(payload.sub, payload.email, payload.name);
-  } catch (err) {
-    console.error('Google login error:', err);
-    showNotification('Google login failed');
-  }
-}
-
-// Modal close on overlay click
 document.querySelector('.modal-overlay')?.addEventListener('click', closeModal);
 document.querySelector('.modal-close')?.addEventListener('click', closeModal);
 
-// Initialize
 document.addEventListener('DOMContentLoaded', () => {
-  // Wait a bit for API to initialize
-  setTimeout(() => {
-    console.log('[App] Starting...');
-    init();
-  }, 100);
-
-  // Browser back/forward support for path-based routes
+  setTimeout(() => { console.log('[App] Starting...'); init(); }, 100);
   window.addEventListener('popstate', handleRoute);
-
-  // Keep nav clicks robust
   document.querySelectorAll('.nav-link[data-page]').forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       const page = link.dataset.page;
-      if (page) {
-        switchPage(page);
-        console.log('[App] Nav click:', page);
-      }
+      if (page) { switchPage(page); console.log('[App] Nav click:', page); }
     });
   });
-
-  console.log('[App] Nav click handlers added');
 });
+
+function closeModal() {
+  document.getElementById('copyModal').style.display = 'none';
+  document.querySelector('.modal-overlay').style.display = 'none';
+}
+
+function renderCopyCard(copy) {
+  return `<article class="copy-card" onclick="navigate('/${copy.username}/${copy.id}')">
+    <h3>${copy.name}</h3>
+    <p>${copy.description?.slice(0, 80) || ''}...</p>
+    <div class="copy-meta">
+      <span>⭐ ${copy.rating_average || 0}</span>
+      <span>📦 ${copy.install_count || 0}</span>
+      <span>${copy.category}</span>
+    </div>
+  </article>`;
+}
+
+async function loadFeaturedCopies() {
+  const container = document.getElementById('featuredCopies');
+  if (!container) return;
+  container.innerHTML = '<p>Loading...</p>';
+  console.log('[App] Loading featured copies...');
+  try {
+    const copies = await API.getFeatured();
+    console.log('[App] Featured copies:', copies);
+    if (!copies?.length) { container.innerHTML = '<p>No featured copies yet.</p>'; return; }
+    container.innerHTML = `<div class="copy-grid">${copies.map(c => renderCopyCard(c)).join('')}</div>`;
+  } catch (err) {
+    console.error('[App] Failed to load featured:', err);
+    container.innerHTML = '<p>Failed to load copies.</p>';
+  }
+}
+
+async function loadAllCopies() {
+  const container = document.getElementById('allCopies');
+  if (!container) return;
+  container.innerHTML = '<p>Loading...</p>';
+  try {
+    const copies = await API.getAll();
+    if (!copies?.length) { container.innerHTML = '<p>No copies available.</p>'; return; }
+    container.innerHTML = `<div class="copy-grid">${copies.map(c => renderCopyCard(c)).join('')}</div>`;
+  } catch (err) {
+    container.innerHTML = '<p>Failed to load copies.</p>';
+  }
+}
+
+async function loadCategories() {
+  const container = document.getElementById('categoryList');
+  if (!container) return;
+  try {
+    const cats = await API.getCategories();
+    container.innerHTML = cats.map(c => `<a href="#" onclick="navigate('/?category=${c.category}'); return false;">${c.icon || ''} ${c.category} (${c.count})</a>`).join('');
+  } catch (err) {
+    container.innerHTML = '<p>Failed to load categories.</p>';
+  }
+}
+
+async function searchCopies(query) {
+  if (!query) return;
+  const container = document.getElementById('searchResults');
+  if (!container) return;
+  container.innerHTML = '<p>Searching...</p>';
+  try {
+    const results = await API.search(query);
+    if (!results?.length) { container.innerHTML = '<p>No results found.</p>'; return; }
+    container.innerHTML = `<h2>Search Results for "${query}"</h2><div class="copy-grid">${results.map(c => renderCopyCard(c)).join('')}</div>`;
+  } catch (err) {
+    container.innerHTML = '<p>Search failed.</p>';
+  }
+}
