@@ -382,7 +382,11 @@ const routes = {
   },
 
   'GET /api/auth/me': (req) => {
-    const token = (req.headers.authorization || '').replace('Bearer ', '');
+    let token = (req.headers.authorization || '').replace('Bearer ', '');
+    // Support both "clawfactory_xxx" and "xxx" formats
+    if (token.startsWith('clawfactory_')) {
+      token = token.replace('clawfactory_', '');
+    }
     if (!token) return { error: 'No token', status: 401 };
     const user = getOne('SELECT id, username, email, created_at FROM users WHERE id = ?', [token]);
     if (!user) return { error: 'Invalid token', status: 401 };
