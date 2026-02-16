@@ -339,12 +339,18 @@ document.getElementById('loginPasswordForm')?.addEventListener('submit', async (
   const username = document.getElementById('loginUsername').value;
   const password = document.getElementById('loginPassword').value;
   
+  if (!username || !password) {
+    showNotification('Please enter username and password');
+    return;
+  }
+  
+  console.log('[Login] Attempting with username:', username);
   const res = await API.login(username, password);
-  console.log('[Login] Response:', res); // Debug log
+  console.log('[Login] Full response:', JSON.stringify(res));
+  
   if (res.success && res.token) {
     updateAuthUI();
     showNotification('Logged in!');
-    // Navigate to user's account page
     navigate(`/${username}/account`);
   } else {
     const msg = res.remainingMin 
