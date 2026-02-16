@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "cd backend && npm start",
-    "rootDirectory": "./"
+    "rootDirectory": "backend",
+    "startCommand": "npm start"
   }
 }
