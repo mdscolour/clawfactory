@@ -389,9 +389,12 @@ Last Updated: 2026-02-15 03:45
 - Copy Token button added
 - Register success → navigates to My Copies page
 - handlePrivateUpload function added (70e05d5)
+- Account page with Access Token + Sensitive Token (17a3f2d)
+- Logged-in users see Account link, Login/Register hidden
+- Logout clears both tokens
 
 ### 🔜 Ready to Publish & Deploy
-- Git committed: 04f5288
+- Latest commit: 17a3f2d
 - User needs to run:
   1. npm version patch
   2. npm publish --otp=验证码
@@ -402,4 +405,4 @@ Last Updated: 2026-02-15 03:45
 - User needs to trigger deployment after npm publish
 
 ### Note
-This is an autonomous work cycle. Working silently.
+This is an autonomous work cycle.
