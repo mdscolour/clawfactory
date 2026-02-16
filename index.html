@@ -203,16 +203,16 @@
         <p style="margin-top:16px;">Already have a token? <a href="#" onclick="switchPage('login'); return false;">Login with existing token</a></p>
       </form>
       <div id="tokenResult" style="display:none; margin-top: 20px;">
-        <div style="background: #1a1b26; border-radius: 12px; padding: 20px; border: 1px solid #2d2d3a;">
+        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color);">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-            <h3 style="margin:0;color:#7aa2f7;">🤖 clawfactory</h3>
-            <span style="color: #9ece6a; font-size: 12px;">✓ registered</span>
+            <h3 style="margin:0;color: var(--primary);">🤖 clawfactory</h3>
+            <span style="color: var(--success); font-size: 12px;">✓ registered</span>
           </div>
-          <div style="background: #0f0f14; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-            <code id="userToken" style="color: #bb9af7; font-family: 'SF Mono', Monaco, Consolas, monospace; font-size: 14px; word-break: break-all; line-height: 1.6;"></code>
+          <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+            <code id="userToken" style="color: var(--primary); font-family: 'SF Mono', Monaco, Consolas, monospace; font-size: 14px; word-break: break-all; line-height: 1.6;"></code>
           </div>
-          <p style="color: #565f89; font-size: 13px; margin-bottom: 16px;">Copy this token to use with CLI:</p>
-          <div style="background: #0f0f14; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-family: 'SF Mono', Monaco, Consolas, monospace; font-size: 12px; color: #9ece6a;">
+          <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">Copy this token to use with CLI:</p>
+          <div style="background: var(--bg-primary); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-family: 'SF Mono', Monaco, Consolas, monospace; font-size: 12px; color: var(--success);">
             export CLAWFACTORY_TOKEN=&lt;your-token&gt;
           </div>
           <div style="display: flex; gap: 8px;">
@@ -251,25 +251,25 @@
     <!-- Account Page -->
     <div id="accountPage" style="display:none;">
       <section class="page-header">
-        <h1><span style="color: #7aa2f7;">@</span><span id="accountUsername"></span></h1>
+        <h1><span style="color: var(--primary);">@</span><span id="accountUsername"></span></h1>
       </section>
       <div class="auth-form" style="max-width: 600px; margin: 0 auto;">
         
-        <div style="background: #1a1b26; border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid #2d2d3a;">
-          <h3 style="margin:0 0 8px 0;color: #7aa2f7;">🔑 Access Token</h3>
-          <p style="color: #565f89; font-size: 13px; margin-bottom: 12px;">Use for: uploading public copies, browsing, installing</p>
-          <code id="accessToken" style="display: block; background: #0f0f14; padding: 14px; border-radius: 8px; word-break: break-all; margin-bottom: 12px; font-family: 'SF Mono', Monaco, Consolas, monospace; color: #bb9af7;"></code>
+        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid var(--border-color);">
+          <h3 style="margin:0 0 8px 0;color: var(--primary);">🔑 Access Token</h3>
+          <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">Use for: uploading public copies, browsing, installing</p>
+          <code id="accessToken" style="display: block; background: var(--bg-primary); padding: 14px; border-radius: 8px; word-break: break-all; margin-bottom: 12px; font-family: 'SF Mono', Monaco, Consolas, monospace; color: var(--primary);"></code>
           <button class="btn btn-secondary" onclick="copyAccessToken()">📋 Copy</button>
         </div>
 
-        <div style="background: #1a1b26; border-radius: 12px; padding: 20px; border: 1px solid #2d2d3a;">
-          <h3 style="margin:0 0 8px 0;color: #f7768e;">🔒 Sensitive Token</h3>
-          <p style="color: #565f89; font-size: 13px; margin-bottom: 12px;">Use for: uploading private copies, managing private data</p>
-          <code id="sensitiveToken" style="display: block; background: #0f0f14; padding: 14px; border-radius: 8px; word-break: break-all; margin-bottom: 12px; font-family: 'SF Mono', Monaco, Consolas, monospace; color: #bb9af7;"></code>
+        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color);">
+          <h3 style="margin:0 0 8px 0;color: var(--error);">🔒 Sensitive Token</h3>
+          <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">Use for: uploading private copies, managing private data</p>
+          <code id="sensitiveToken" style="display: block; background: var(--bg-primary); padding: 14px; border-radius: 8px; word-break: break-all; margin-bottom: 12px; font-family: 'SF Mono', Monaco, Consolas, monospace; color: var(--primary);"></code>
           <button class="btn btn-secondary" onclick="copySensitiveToken()">📋 Copy</button>
         </div>
 
-        <p style="margin-top: 24px; color: #565f89; font-size: 13px; text-align: center;">
+        <p style="margin-top: 24px; color: var(--text-muted); font-size: 13px; text-align: center;">
           ⚠️ Save these tokens safely. They are only shown once.
         </p>
       </div>
