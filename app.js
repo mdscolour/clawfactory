@@ -286,10 +286,16 @@ function saveTokenAndContinue() {
     localStorage.setItem('clawfactory_token', window.pendingToken);
     API.setToken(window.pendingToken);
     checkAuth().then(() => {
-      showNotification('Token saved!');
-      switchPage('home');
+      showNotification('Registered! Token saved!');
+      switchPage('my-copies');
     });
   }
+}
+
+function copyToken() {
+  const token = document.getElementById('userToken').textContent;
+  navigator.clipboard?.writeText(token);
+  showNotification('Token copied!');
 }
 
 document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
