@@ -227,6 +227,15 @@ const routes = {
     return { ...copy, skills: parseJson(copy.skills), tags: parseJson(copy.tags), files: parseJson(copy.files), memory: copy.memory };
   },
 
+  'GET /api/copies/:id/private': (req) => {
+    const { user_id } = req.query;
+    const copy = getOne('SELECT * FROM copies WHERE id = ?', [req.params.id]);
+    if (!copy) return { error: 'Copy not found', status: 404 };
+    // Only the owner can view private copies
+    if (copy.is_private === 1 && copy.user_id !== user_id) return { error: 'Access denied', status: 403 };
+    return { ...copy, skills: parseJson(copy.skills), tags: parseJson(copy.tags), files: parseJson(copy.files), memory: copy.memory };
+  },
+
   'GET /api/users/:username': (req) => {
     const user = getOne('SELECT id, username, email, created_at FROM users WHERE username = ?', [req.params.username]);
     if (!user) return { error: 'User not found', status: 404 };

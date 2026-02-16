@@ -24,20 +24,90 @@ function handleRoute() {
   const normalized = route.replace(/^\/+/, '');
   const parts = normalized.split('/').filter(Boolean);
 
-  if (parts.length === 2 && !parts[0].startsWith('page')) {
-    // Handle /username/account route
-    if (parts[1] === 'account') {
-      showUserAccountPage(parts[0]);
-      return;
-    }
+  // /username/account - User account page (requires login)
+  if (parts.length === 2 && parts[1] === 'account') {
+    showUserAccountPage(parts[0]);
+    return;
+  }
+  
+  // /username/private/ID - Private copy (requires login)
+  if (parts.length === 3 && parts[1] === 'private') {
+    handlePrivateCopyPage(parts[0], parts[2]);
+    return;
+  }
+  
+  // /username/ID - Public copy (no login required)
+  if (parts.length === 2 && !parts[0].startsWith('page') && parts[1] !== 'account') {
     showUserCopyPage(parts[0], parts[1]);
-  } else if (parts.length === 1 && !parts[0].startsWith('page') && route !== '/') {
+    return;
+  }
+  
+  // /username - User profile page
+  if (parts.length === 1 && !parts[0].startsWith('page') && route !== '/') {
     showUserPage(parts[0]);
-  } else if (route === '/') {
+    return;
+  }
+  
+  // Homepage
+  if (route === '/') {
     switchPage('home');
-  } else if (route.startsWith('page=')) {
+    return;
+  }
+  
+  // Hash-based pages
+  if (route.startsWith('page=')) {
     switchPage(route.replace('page=', ''));
   }
+}
+
+async function handlePrivateCopyPage(username, copyId) {
+  // Check if logged in
+  if (!currentUser) {
+    showNotification('Please login to view private copies');
+    switchPage('login');
+    return;
+  }
+  
+  // Load private copy
+  pageHistory.push(window.location.hash.slice(1));
+  const data = await API.getPrivateCopy(copyId, currentUser.id);
+  
+  if (data.error) {
+    showNotification('Private copy not found or access denied');
+    navigate(`/${username}/account`);
+    return;
+  }
+  
+  // Hide all pages
+  pages.forEach(p => {
+    const el = document.getElementById(`${p}Page`);
+    if (el) el.style.display = 'none';
+  });
+  
+  // Show copy detail page
+  const userCopyPage = document.getElementById('userCopyPage');
+  if (userCopyPage) {
+    userCopyPage.style.display = 'block';
+    document.getElementById('userCopyTitle').textContent = data.name || copyId;
+    document.getElementById('userCopyDetail').innerHTML = renderPrivateCopyDetail(data);
+  }
+}
+
+function renderPrivateCopyDetail(copy) {
+  return `
+    <div class="copy-detail" style="padding: 20px;">
+      <div style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+        <p><strong>🔒 Private Copy</strong></p>
+        <p>${copy.description || 'No description'}</p>
+        <p><strong>Author:</strong> @${copy.author || 'unknown'}</p>
+        ${copy.features ? `<p><strong>Features:</strong> ${copy.features.join(', ')}</p>` : ''}
+      </div>
+      <div style="background: var(--bg-secondary); border-radius: 12px; padding: 20px;">
+        <h3>Installation</h3>
+        <pre style="background: var(--bg-primary); padding: 12px; border-radius: 8px; overflow-x: auto;">clawfactory install ${copy.id}</pre>
+      </div>
+    </div>
+  `;
 }
 
 function showUserAccountPage(username) {

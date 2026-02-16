@@ -153,6 +153,10 @@ const API = {
     return await this.request(`/api/copies/${id}`);
   },
 
+  async getPrivateCopy(id, userId) {
+    return await this.request(`/api/copies/${id}/private?user_id=${userId}`);
+  },
+
   async createCopy(data) {
     return await this.request('/api/copies', {
       method: 'POST',
