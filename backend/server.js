@@ -17,6 +17,38 @@ const WS_PORT = process.env.WS_PORT || 3001;
 
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
+// Rate limiting for login attempts
+const loginAttempts = new Map(); // username -> { count, resetTime }
+
+function checkLoginRateLimit(username) {
+  const now = Date.now();
+  const attempt = loginAttempts.get(username);
+  
+  if (!attempt) {
+    loginAttempts.set(username, { count: 1, resetTime: now + 3600000 }); // 1 hour
+    return { allowed: true, remaining: 9 };
+  }
+  
+  if (now > attempt.resetTime) {
+    // Reset after 1 hour
+    loginAttempts.set(username, { count: 1, resetTime: now + 3600000 });
+    return { allowed: true, remaining: 9 };
+  }
+  
+  if (attempt.count >= 10) {
+    const remainingMs = attempt.resetTime - now;
+    const remainingMin = Math.ceil(remainingMs / 60000);
+    return { allowed: false, remainingMin };
+  }
+  
+  attempt.count++;
+  return { allowed: true, remaining: 10 - attempt.count };
+}
+
+function resetLoginAttempts(username) {
+  loginAttempts.delete(username);
+}
+
 const DB_PATH = path.join(DATA_DIR, 'clawfactory.db');
 let db;
 
@@ -268,9 +300,22 @@ const routes = {
 
   'POST /api/auth/login': (req) => {
     const { username, password } = req.body;
+    
+    // Check rate limit first
+    const rateLimit = checkLoginRateLimit(username);
+    if (!rateLimit.allowed) {
+      return { error: `Too many failed attempts. Try again in ${rateLimit.remainingMin} minutes.`, status: 429, remainingMin: rateLimit.remainingMin };
+    }
+    
     const user = getOne('SELECT * FROM users WHERE username = ?', [username]);
-    if (!user) return { error: 'User not found', status: 404 };
-    if (user.password_hash && !verifyPassword(password, user.password_hash)) return { error: 'Invalid password', status: 401 };
+    if (!user) return { error: 'Invalid username or password', status: 401, remaining: rateLimit.remaining };
+    if (user.password_hash && !verifyPassword(password, user.password_hash)) {
+      return { error: 'Invalid username or password', status: 401, remaining: rateLimit.remaining };
+    }
+    
+    // Success - reset failed attempts
+    resetLoginAttempts(username);
+    
     const token = 'clawfactory_' + user.id;
     return { success: true, user: { id: user.id, username: user.username, email: user.email }, token };
   },

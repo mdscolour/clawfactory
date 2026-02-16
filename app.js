@@ -347,7 +347,10 @@ document.getElementById('loginPasswordForm')?.addEventListener('submit', async (
     // Navigate to user's account page
     navigate(`/${username}/account`);
   } else {
-    showNotification('Login failed: ' + (res.error || res.message || 'Unknown error'));
+    const msg = res.remainingMin 
+      ? `Too many attempts. Try again in ${res.remainingMin} minutes.`
+      : res.error || 'Login failed';
+    showNotification(msg);
   }
 });
 
