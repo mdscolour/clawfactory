@@ -292,6 +292,15 @@ function saveTokenAndContinue() {
   }
 }
 
+function handlePrivateUpload() {
+  if (!currentUser) {
+    showNotification('Please login first');
+    switchPage('login');
+    return;
+  }
+  switchPage('upload');
+}
+
 function copyToken() {
   const token = document.getElementById('userToken').textContent;
   navigator.clipboard?.writeText(token);

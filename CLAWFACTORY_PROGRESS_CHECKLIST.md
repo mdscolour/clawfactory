@@ -383,20 +383,23 @@ Last Updated: 2026-02-15 03:45
 - Commands: install, copy, upload, secret upload, secret install, hottest, mine, search
 
 ### ✅ Frontend Simplified (2026-02-16)
-- Login page now asks for token OR username/password
-- Register page returns token after registration
-- Users can now GET tokens from web UI
+- Login page: token input OR username/password login
+- Register page: username/password → generates token → displays token
 - Token saved to localStorage for CLI use
+- Copy Token button added
+- Register success → navigates to My Copies page
 - Fixed API.register password issue (ebbb0b2)
 - Fixed register page not showing (7647cbe)
+- Fixed copy detail showing on every page (cd3c17a)
+- Improved register flow UI (2ceb18f)
 
-### 🔜 Waiting for npm publish
-- Latest GitHub commit: 7647cbe
-- User needs: `npm publish --otp=验证码`
+### 🔜 npm publish blocked
+- Git working directory not clean (user needs to commit first)
+- User needs to run: git add -A && git commit && npm version patch && npm publish
 
 ### 🔜 Railway Deployment
 - Frontend changes not visible online
-- User needs to trigger deployment
+- User needs to trigger deployment after npm publish
 
 ### Note
 This is an autonomous work cycle. Working silently.
