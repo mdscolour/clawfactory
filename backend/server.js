@@ -164,8 +164,8 @@ function seedExampleData() {
   for (const ex of examples) {
     const userId = seedUsers.find(u => u.username === ex.username)?.id || 'seed';
     try {
-      run(`INSERT INTO copies (id, user_id, username, name, description, author, version, category, skills, tags, features) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [ex.id, userId, ex.username, ex.name, ex.description, ex.author, ex.version, ex.category, JSON.stringify(ex.skills), JSON.stringify(ex.tags), JSON.stringify(ex.features)]);
+      run(`INSERT INTO copies (id, user_id, username, name, description, author, version, category, model, skills, tags, features) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [ex.id, userId, ex.username, ex.name, ex.description, ex.author, ex.version, ex.category, model||null, JSON.stringify(ex.skills), JSON.stringify(ex.tags), JSON.stringify(ex.features)]);
     } catch (e) {}
   }
   console.log('🌱 Seed complete!');
@@ -221,7 +221,7 @@ const routes = {
   },
 
   'POST /api/copies': (req) => {
-    const { name, description, author, version, category, skills, tags, features, files, memory, user_id, username, is_private, copyId } = req.body;
+    const { name, description, author, version, category, model, skills, tags, features, files, memory, user_id, username, is_private, copyId } = req.body;
     // Allow custom copyId or generate from name
     const id = copyId || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     const existing = getOne('SELECT * FROM copies WHERE id = ?', [id]);
@@ -245,13 +245,13 @@ const routes = {
         newVersion = `${parts[0]}.${parts[1]}.${patch + 1}`;
       }
       
-      run(`UPDATE copies SET name=?, description=?, author=?, version=?, category=?, skills=?, tags=?, features=?, files=?, memory=?, is_private=?, updated_at=datetime('now') WHERE id=?`,
-        [name, description, author, newVersion, category, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_private?1:0, id]);
+      run(`UPDATE copies SET name=?, description=?, author=?, version=?, category=?, model=?, skills=?, tags=?, features=?, files=?, memory=?, is_private=?, updated_at=datetime('now') WHERE id=?`,
+        [name, description, author, newVersion, category, model||null, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_private?1:0, id]);
       return { success: true, id, isUpdate: true, version: newVersion };
     } else {
       // Insert new
-      run(`INSERT INTO copies (id, user_id, username, name, description, author, version, category, skills, tags, features, files, memory, is_private) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, user_id||'anonymous', username, name, description, author, version||'1.0.0', category, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_private?1:0]);
+      run(`INSERT INTO copies (id, user_id, username, name, description, author, version, category, model, skills, tags, features, files, memory, is_private) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, user_id||'anonymous', username, name, description, author, version||'1.0.0', category, model||null, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_private?1:0]);
       return { success: true, id, isUpdate: false, version: version||'1.0.0' };
     }
   },

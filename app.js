@@ -134,6 +134,7 @@ async function showUserCopyPage(username, copySlug) {
           <span>⭐ ${copy.rating_average || 0}</span>
           <span>📦 ${copy.install_count || 0}</span>
           <span>${copy.category || 'others'}</span>
+          ${copy.model ? `<span>🤖 ${copy.model}</span>` : ''}
           <span>v${copy.version || '1.0.0'}</span>
         </div>
 
@@ -419,6 +420,7 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
     description: document.getElementById('copyDescription').value,
     author: document.getElementById('copyAuthor').value,
     category: document.getElementById('copyCategory').value,
+    model: document.getElementById('copyModel').value,
     skills: document.getElementById('copySkills').value.split(',').map(s=>s.trim()).filter(Boolean),
     tags: document.getElementById('copyTags').value.split(',').map(t=>t.trim()).filter(Boolean),
     files: { 'SKILL.md': document.getElementById('copyName').value },
