@@ -150,16 +150,21 @@ async function checkAuth() {
 
 function updateAuthUI() {
   const loginLink = document.getElementById('loginLink');
+  const registerLink = document.getElementById('registerLink');
+  const accountLink = document.getElementById('accountLink');
   const logoutBtn = document.getElementById('logoutBtn');
   const userDisplay = document.getElementById('userDisplay');
 
   if (currentUser) {
     loginLink.style.display = 'none';
+    registerLink.style.display = 'none';
+    accountLink.style.display = 'inline';
     logoutBtn.style.display = 'inline-block';
-    userDisplay.style.display = 'inline';
-    userDisplay.textContent = `Hi, ${currentUser.username}`;
+    userDisplay.style.display = 'none';
   } else {
     loginLink.style.display = 'inline';
+    registerLink.style.display = 'inline';
+    accountLink.style.display = 'none';
     logoutBtn.style.display = 'none';
     userDisplay.style.display = 'none';
   }
@@ -168,6 +173,7 @@ function updateAuthUI() {
 function logout() {
   currentUser = null;
   localStorage.removeItem('clawfactory_token');
+  localStorage.removeItem('clawfactory_sensitive_token');
   API.setToken(null);
   updateAuthUI();
   showNotification('Logged out');
@@ -193,7 +199,7 @@ function copyInstallCommand(copyId) {
   showNotification('Command copied!');
 }
 
-const pages = ['home', 'copies', 'categories', 'search', 'upload', 'login', 'register', 'my-copies'];
+const pages = ['home', 'copies', 'categories', 'search', 'upload', 'login', 'register', 'account', 'my-copies'];
 
 function switchPage(page) {
   pages.forEach(p => {
@@ -209,6 +215,7 @@ function switchPage(page) {
   if (page === 'copies') loadAllCopies();
   if (page === 'my-copies') loadMyCopies();
   if (page === 'home') loadFeaturedCopies();
+  if (page === 'account') loadAccount();
 }
 
 async function loadMyCopies() {
@@ -218,6 +225,39 @@ async function loadMyCopies() {
   }
   const copies = await API.getUserCopies(currentUser.id);
   document.getElementById('myCopiesList').innerHTML = copies.length ? copies.map(c => renderCopyCard(c)).join('') : '<p>No copies yet.</p>';
+}
+
+async function loadAccount() {
+  if (!currentUser) {
+    switchPage('login');
+    return;
+  }
+  
+  document.getElementById('accountUsername').textContent = currentUser.username;
+  
+  // Get Access Token (from localStorage or current user id)
+  const accessToken = localStorage.getItem('clawfactory_token') || currentUser.id;
+  document.getElementById('accessToken').textContent = accessToken;
+  
+  // Get or generate Sensitive Token
+  let sensitiveToken = localStorage.getItem('clawfactory_sensitive_token');
+  if (!sensitiveToken) {
+    sensitiveToken = 'sens_' + currentUser.id + '_' + Date.now().toString(36);
+    localStorage.setItem('clawfactory_sensitive_token', sensitiveToken);
+  }
+  document.getElementById('sensitiveToken').textContent = sensitiveToken;
+}
+
+function copyAccessToken() {
+  const token = document.getElementById('accessToken').textContent;
+  navigator.clipboard?.writeText(token);
+  showNotification('Access Token copied!');
+}
+
+function copySensitiveToken() {
+  const token = document.getElementById('sensitiveToken').textContent;
+  navigator.clipboard?.writeText(token);
+  showNotification('Sensitive Token copied!');
 }
 
 function showNotification(msg) {

@@ -390,12 +390,15 @@ Last Updated: 2026-02-15 03:45
 - Register success → navigates to My Copies page
 - handlePrivateUpload function added (70e05d5)
 
-### 🔜 npm publish blocked
-- Git working directory not clean (user needs to commit first)
-- User needs to run: git add -A && git commit && npm version patch && npm publish
+### 🔜 Ready to Publish & Deploy
+- Git committed: 04f5288
+- User needs to run:
+  1. npm version patch
+  2. npm publish --otp=验证码
+  3. Trigger Railway deployment
 
 ### 🔜 Railway Deployment
-- Frontend changes not visible online
+- Frontend changes ready but not visible online
 - User needs to trigger deployment after npm publish
 
 ### Note
