@@ -72,12 +72,12 @@ const API = {
       }
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        throw new Error(`HTTP ${response.status}: ${endpoint}`);
       }
 
       return await response.json();
     } catch (err) {
-      console.error('[API] Error:', err.message);
+      console.error('[API] Error fetching', endpoint, ':', err.message);
       return { error: err.message, offline: true };
     }
   },

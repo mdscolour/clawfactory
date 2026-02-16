@@ -5,6 +5,7 @@ let currentUser = null;
 let pageHistory = [];
 
 async function init() {
+  API.init();
   await checkAuth();
   loadFeaturedCopies();
   loadCategories();
