@@ -30,10 +30,6 @@ const API = {
   },
 
   async request(endpoint, options = {}) {
-    if (!this.useBackend) {
-      return { error: 'Backend not configured', offline: true };
-    }
-
     try {
       const headers = {
         'Content-Type': 'application/json',
