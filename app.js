@@ -278,6 +278,7 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     API.setToken(token);
     await checkAuth();
     if (currentUser) {
+      updateAuthUI();
       showNotification('Token saved!');
       switchPage('home');
     } else {
@@ -293,6 +294,7 @@ document.getElementById('loginPasswordForm')?.addEventListener('submit', async (
   
   const res = await API.login(username, password);
   if (res.success && res.token) {
+    updateAuthUI();
     showNotification('Logged in!');
     switchPage('home');
   } else {
@@ -326,6 +328,7 @@ function saveTokenAndContinue() {
     localStorage.setItem('clawfactory_token', window.pendingToken);
     API.setToken(window.pendingToken);
     checkAuth().then(() => {
+      updateAuthUI();
       showNotification('Registered! Token saved!');
       switchPage('my-copies');
     });
