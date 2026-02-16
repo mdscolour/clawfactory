@@ -11,20 +11,20 @@
 <body>
   <header class="header">
     <div class="container">
-      <a href="#" class="logo" onclick="switchPage('home'); return false;">
+      <a href="/" class="logo" onclick="navigate('/'); return false;">
         <span class="logo-icon">🦞</span>
         <span class="logo-text">ClawFactory</span>
       </a>
       <nav class="nav">
-        <a href="#" class="nav-link active" data-page="copies" onclick="switchPage('copies'); return false;">Copies</a>
-        <a href="#" class="nav-link" data-page="categories" onclick="switchPage('categories'); return false;">Categories</a>
-        <a href="#" class="nav-link" data-page="search" onclick="switchPage('search'); return false;">Search</a>
-        <a href="#" class="nav-link" data-page="upload" onclick="switchPage('upload'); return false;">Upload</a>
-        <a href="#" class="nav-link" data-page="my-copies" onclick="switchPage('my-copies'); return false;">My Copies</a>
+        <a href="#page=copies" class="nav-link active" data-page="copies" onclick="navigate('page=copies'); return false;">Copies</a>
+        <a href="#page=categories" class="nav-link" data-page="categories" onclick="navigate('page=categories'); return false;">Categories</a>
+        <a href="#page=search" class="nav-link" data-page="search" onclick="navigate('page=search'); return false;">Search</a>
+        <a href="#page=upload" class="nav-link" data-page="upload" onclick="navigate('page=upload'); return false;">Upload</a>
+        <a href="#page=my-copies" class="nav-link" data-page="my-copies" onclick="navigate('page=my-copies'); return false;">My Copies</a>
       </nav>
       <div class="auth-section">
-        <a href="#" class="nav-link" data-page="login" id="loginLink" onclick="switchPage('login'); return false;">Login</a>
-        <a href="#" class="nav-link" data-page="register" id="registerLink" onclick="switchPage('register'); return false;">Register</a>
+        <a href="#page=login" class="nav-link" data-page="login" id="loginLink" onclick="navigate('page=login'); return false;">Login</a>
+        <a href="#page=register" class="nav-link" data-page="register" id="registerLink" onclick="navigate('page=register'); return false;">Register</a>
         <span id="userDisplay" style="display:none;"></span>
         <button onclick="logout()" id="logoutBtn" style="display:none;" class="btn btn-secondary">Logout</button>
       </div>
@@ -39,8 +39,8 @@
           <h1>Upload or copy Claw bot in 1 second</h1>
           <p class="hero-subtitle">Share and discover pre-configured OpenClaw copies with skills, workspaces, and personalized settings.</p>
           <div class="hero-buttons">
-            <button class="btn btn-primary btn-lg" onclick="switchPage('copies')">Find copies</button>
-            <button class="btn btn-secondary btn-lg" onclick="switchPage('upload')">Share yours publicly</button>
+            <button class="btn btn-primary btn-lg" onclick="navigate('page=copies')">Find copies</button>
+            <button class="btn btn-secondary btn-lg" onclick="navigate('page=upload')">Share yours publicly</button>
             <button class="btn btn-secondary btn-lg" onclick="handlePrivateUpload()">Upload privately</button>
           </div>
         </div>

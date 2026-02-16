@@ -64,17 +64,21 @@ function goBack() {
     return;
   }
   
-  // Fallback to home or previous page
-  const currentHash = window.location.hash.slice(1);
+  // Smart fallback based on current URL
+  const currentHash = window.location.hash.slice(1) || '/';
   const parts = currentHash.split('/').filter(Boolean);
   
-  if (parts.length >= 2) {
-    // If on user copy page, go back to user page
+  if (currentHash.startsWith('page=')) {
+    // If on a page, go home
+    navigate('/');
+  } else if (parts.length >= 2) {
+    // If on user copy page (/username/copySlug), go back to user page
     navigate(`/${parts[0]}`);
-  } else if (parts.length === 1) {
-    // If on user page, go home
+  } else if (parts.length === 1 && parts[0]) {
+    // If on user page (/username), go home
     navigate('/');
   } else {
+    // Already on home
     navigate('/');
   }
 }
