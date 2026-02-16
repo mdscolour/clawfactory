@@ -378,10 +378,9 @@ Last Updated: 2026-02-15 03:45
 
 ### ✅ CLI Simplified (2026-02-16)
 - Removed: login, register, googleLogin, logout functions
-- Removed: list command
+- Removed: publish command (redundant with upload)
 - Token-based auth via CLAWFACTORY_TOKEN env or ~/.clawfactory/token file
-- New commands: install, copy, hottest, search, mine, mine --private, upload, secret upload, secret install, publish
-- Fixed npm publishConfig warning
+- Commands: install, copy, upload, secret upload, secret install, hottest, mine, search
 
 ### ✅ Frontend Simplified (2026-02-16)
 - Login page now asks for token OR username/password

@@ -193,7 +193,7 @@ function copyInstallCommand(copyId) {
   showNotification('Command copied!');
 }
 
-const pages = ['home', 'copies', 'categories', 'search', 'upload', 'login', 'my-copies'];
+const pages = ['home', 'copies', 'categories', 'search', 'upload', 'login', 'register', 'my-copies'];
 
 function switchPage(page) {
   pages.forEach(p => {
