@@ -398,12 +398,29 @@ const httpServer = http.createServer((req, res) => {
   }
 });
 
+function friendlyPortError(err, name, port) {
+  if (err && err.code === 'EADDRINUSE') {
+    console.error(`❌ ${name} port ${port} is already in use (EADDRINUSE).`);
+    console.error(`   Another process is already listening on ${port}.`);
+    console.error(`   Fix options:`);
+    console.error(`   1) Stop the existing process using port ${port}`);
+    console.error(`   2) Start on a different port, e.g. PORT=${port + 1} npm start`);
+    process.exitCode = 1;
+    return;
+  }
+  console.error(`❌ ${name} failed:`, err?.message || err);
+  process.exitCode = 1;
+}
+
 async function start() {
   await initDb();
+
+  httpServer.on('error', (err) => friendlyPortError(err, 'HTTP server', Number(PORT)));
   httpServer.listen(PORT, () => console.log(`🦞 ClawFactory API: http://localhost:${PORT}`));
   
   // WebSocket
   const wss = new WebSocketServer({ port: WS_PORT });
+  wss.on('error', (err) => friendlyPortError(err, 'WebSocket server', Number(WS_PORT)));
   wss.on('connection', ws => {
     ws.on('message', msg => {
       try { const d = JSON.parse(msg); if (d.event === 'ping') ws.send(JSON.stringify({ event: 'pong' })); } catch (e) {}
@@ -412,5 +429,8 @@ async function start() {
   console.log(`📡 WebSocket: ws://localhost:${WS_PORT}`);
 }
 
-start().catch(console.error);
+start().catch((err) => {
+  console.error('❌ Startup failed:', err?.message || err);
+  process.exitCode = 1;
+});
 // Railway deploy trigger Sun Feb 15 01:51:30 CET 2026
