@@ -10,21 +10,10 @@ const API = {
   token: null,
 
   init() {
-    // Check for external backend URL from config.js
-    const externalUrl = typeof CLAWFACTORY_CONFIG !== 'undefined' 
-      ? CLAWFACTORY_CONFIG.API_URL 
-      : '';
-    
-    if (externalUrl) {
-      this.useBackend = true;
-      this.baseUrl = externalUrl;
-      console.log('[API] Using external backend:', this.baseUrl);
-    } else {
-      // When served from same domain as backend, use relative paths
-      this.useBackend = true;
-      this.baseUrl = '';
-      console.log('[API] Using same-domain backend');
-    }
+    // Always use relative paths (same-origin on Railway)
+    this.useBackend = true;
+    this.baseUrl = '';
+    console.log('[API] Using relative backend URL');
     
     // Load saved token
     if (typeof localStorage !== 'undefined') {
