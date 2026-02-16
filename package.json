@@ -3,6 +3,9 @@
   "version": "1.0.10",
   "description": "OpenClaw Copy Registry CLI - Install and share OpenClaw configurations",
   "main": "cli.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "cli": "node cli.js",
     "start": "node backend/server.js",

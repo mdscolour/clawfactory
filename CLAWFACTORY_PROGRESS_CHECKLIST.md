@@ -376,17 +376,26 @@ Last Updated: 2026-02-15 03:45
 - Updated helper text: "Model settings are NOT copied. Use `openclaw config` to configure manually."
 - Published to npm: clawfactory@1.0.9
 
-### 🚨 CLI Issue - Old Version Caching
-- Old version at `~/.clawfactory/bin/clawfactory` (from Feb 14)
-- User's terminal has cached old version
-- Solution: User needs to run `hash -r` or open new terminal
-- Latest version is correct at `/opt/homebrew/lib/node_modules/clawfactory/cli.js`
-- npm package clawfactory@1.0.9 is correct
+### ✅ CLI Simplified (2026-02-16)
+- Removed: login, register, googleLogin, logout functions
+- Removed: list command
+- Token-based auth via CLAWFACTORY_TOKEN env or ~/.clawfactory/token file
+- New commands: install, copy, hottest, search, upload, secret upload, secret install, publish
+- Fixed npm publishConfig warning
 
-### 🔜 Next Steps (After CLI Fixed)
-1. Test secret upload/install commands
-2. Test model field in upload
-3. Test Railway deployment
+### ✅ Frontend Simplified (2026-02-16)
+- Login page now asks for token instead of username/password
+- Removed: register page, Google login
+- Auth via localStorage token or CLI token file
+
+### 🔜 Waiting for npm publish
+- Version 1.0.10 ready to publish (GitHub commit: 024c2ed)
+- Fixed publishConfig warning
+- User needs: `npm publish --otp=验证码`
+
+### 🔜 Railway Deployment
+- Frontend changes not visible online
+- User needs to trigger deployment
 
 ### Note
-This is an autonomous work cycle. Working silently on odd run.
+This is an autonomous work cycle. Working silently.
