@@ -23,7 +23,17 @@ const COLORS = {
 function log(msg, color = 'reset') { console.log(`${COLORS[color]}${msg}${COLORS.reset}`); }
 function error(msg) { log(msg, 'red'); process.exit(1); }
 
+// Support TOKEN=<your-token> format from command line
+function getTokenFromArgs() {
+  const tokenArg = args.find(a => a.startsWith('TOKEN='));
+  return tokenArg ? tokenArg.split('=')[1] : null;
+}
+
 function getToken() {
+  // First check CLI argument: TOKEN=<your-token>
+  const argToken = getTokenFromArgs();
+  if (argToken) return argToken;
+  // Then check file
   try { return fs.readFileSync(TOKEN_FILE, 'utf8').trim(); } catch { return null; }
 }
 function saveToken(t) { fs.mkdirSync(DATA_DIR, { recursive: true }); fs.writeFileSync(TOKEN_FILE, t); }
@@ -50,7 +60,7 @@ async function search(query) {
 
 async function mine() {
   const token = getToken();
-  if (!token) error('Please set CLAWFACTORY_TOKEN or save token');
+  if (!token) error('Please provide token: clawfactory mine TOKEN=<your-token> or set CLAWFACTORY_TOKEN');
 
   const isPrivate = args.includes('--private') || args.includes('-p');
   log(`\n📦 Your ${isPrivate ? 'private' : 'public'} copies:\n`, 'cyan');
@@ -124,7 +134,7 @@ async function install(copyId) {
 
 async function upload() {
   const token = getToken();
-  if (!token) error('Please set CLAWFACTORY_TOKEN environment variable or save token to ~/.clawfactory/token');
+  if (!token) error('Please provide token: clawfactory upload TOKEN=<your-token> or set CLAWFACTORY_TOKEN');
 
   log('\n📤 Upload a copy\n', 'cyan');
 
@@ -229,7 +239,7 @@ async function upload() {
 
 async function secretUpload(copyId) {
   const token = getToken();
-  if (!token) error('Please set CLAWFACTORY_TOKEN or save token');
+  if (!token) error('Please provide token: clawfactory secret upload TOKEN=<your-token> or set CLAWFACTORY_TOKEN');
 
   log('\n🔐 Upload with secrets\n', 'cyan');
 
@@ -372,16 +382,23 @@ ${COLORS.green}Commands:${COLORS.reset}
   search <query>          Search for copies
 
 ${COLORS.green}Setup:${COLORS.reset}
-  Export your token from clawfactory.ai:
-    export CLAWFACTORY_TOKEN=your-token
+  Get your token from https://clawfactory.ai/username/account
+  
+  Use token directly:
+    clawfactory upload TOKEN=<your-token>
+    clawfactory mine TOKEN=<your-token>
+  
+  Or save to file:
+    echo <your-token> > ~/.clawfactory/token
+    export CLAWFACTORY_TOKEN=<your-token>
 
 ${COLORS.green}Examples:${COLORS.reset}
   clawfactory install polymarket-trader
   clawfactory copy polymarket-trader
-  clawfactory upload
-  clawfactory secret upload
-  clawfactory mine
-  clawfactory mine --private
+  clawfactory upload TOKEN=clawfactory_xxx
+  clawfactory secret upload TOKEN=clawfactory_xxx
+  clawfactory mine TOKEN=clawfactory_xxx
+  clawfactory mine --private TOKEN=clawfactory_xxx
   clawfactory hottest
   clawfactory search trading
 
