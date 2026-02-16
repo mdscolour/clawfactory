@@ -353,104 +353,6 @@ async function secretInstall(copyId, secretKey) {
   }
 }
 
-async function publish(dir = '.') {
-  const token = getToken();
-  if (!token) error('Please set CLAWFACTORY_TOKEN or save token');
-
-  const absDir = path.resolve(dir);
-  if (!fs.existsSync(absDir)) error(`Directory not found: ${absDir}`);
-
-  log(`\n📤 Publishing from: ${absDir}`, 'cyan');
-
-  // Read SKILL.md
-  let skillContent = '';
-  if (fs.existsSync(path.join(absDir, 'SKILL.md'))) {
-    try {
-      skillContent = fs.readFileSync(path.join(absDir, 'SKILL.md'), 'utf8');
-      log('📄 Found SKILL.md', 'cyan');
-    } catch (e) {
-      error(`Could not read SKILL.md: ${e.message}`);
-    }
-  } else {
-    error('SKILL.md not found in directory');
-  }
-
-  // Read SOUL.md if exists
-  let soulContent = '';
-  if (fs.existsSync(path.join(absDir, 'SOUL.md'))) {
-    try {
-      soulContent = fs.readFileSync(path.join(absDir, 'SOUL.md'), 'utf8');
-      log('📄 Found SOUL.md', 'cyan');
-    } catch (e) {
-      // Ignore
-    }
-  }
-
-  // Read AGENTS.md if exists
-  let agentsContent = '';
-  if (fs.existsSync(path.join(absDir, 'AGENTS.md'))) {
-    try {
-      agentsContent = fs.readFileSync(path.join(absDir, 'AGENTS.md'), 'utf8');
-      log('📄 Found AGENTS.md', 'cyan');
-    } catch (e) {
-      // Ignore
-    }
-  }
-
-  // Extract name and description from SKILL.md
-  const nameMatch = skillContent.match(/^# (.+)$/m);
-  const name = nameMatch ? nameMatch[1] : path.basename(absDir);
-
-  const description = skillContent.slice(0, 200).replace(/#+\s/g, '').trim() + '...';
-
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-
-  const category = await new Promise(r => rl.question(`Category [others]: `, r)) || 'others';
-  const skills = await new Promise(r => rl.question('Skills (comma-separated): ', r)) || '';
-  const tags = await new Promise(r => rl.question('Tags (comma-separated): ', r)) || '';
-  const isPrivate = (await new Promise(r => rl.question('Private? (y/n): ', r))) === 'y';
-
-  rl.close();
-
-  // Get user info
-  const userRes = await fetchJson(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
-  if (userRes.error) error('Session expired or invalid token.');
-  const user = userRes.user;
-
-  log('\n⬆️  Publishing...', 'cyan');
-
-  const files = { 'SKILL.md': skillContent };
-  if (soulContent) files['SOUL.md'] = soulContent;
-  if (agentsContent) files['AGENTS.md'] = agentsContent;
-
-  const copyId = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-
-  const res = await fetchJson(`${API_BASE}/api/copies`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({
-      copyId,
-      name,
-      description,
-      author: user.username,
-      category,
-      skills: skills.split(',').map(s => s.trim()).filter(Boolean),
-      tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-      files,
-      is_private: isPrivate,
-      user_id: user.id,
-      username: user.username
-    })
-  });
-
-  if (res.error) error(res.error);
-  log(`\n✅ ${res.isUpdate ? `Updated to v${res.version}` : 'Published'} ${res.id}`, 'green');
-  log(`\n🔗 URL: ${API_BASE}/#/${user.username}/${res.id}`, 'cyan');
-}
-
 function showHelp() {
   console.log(`
 🦞 ClawFactory CLI - OpenClaw Copy Registry
@@ -462,7 +364,6 @@ ${COLORS.green}Commands:${COLORS.reset}
   install <copy-id>        Install a copy
   copy <copy-id>           Alias for install
   upload                   Upload a copy (requires token)
-  publish [dir]            Publish local directory
   secret upload            Upload with .env secrets
   secret install <id> <key> Install encrypted copy
   hottest                 Install the top-rated copy
@@ -478,7 +379,6 @@ ${COLORS.green}Examples:${COLORS.reset}
   clawfactory install polymarket-trader
   clawfactory copy polymarket-trader
   clawfactory upload
-  clawfactory publish .
   clawfactory secret upload
   clawfactory mine
   clawfactory mine --private
@@ -500,7 +400,6 @@ switch (cmd) {
   case 'search': case 's': search(args[1]); break;
   case 'mine': mine(); break;
   case 'upload': upload(); break;
-  case 'publish': case 'pub': publish(args[1] || '.'); break;
   case 'secret': 
     if (args[1] === 'upload') secretUpload();
     else if (args[1] === 'install') secretInstall(args[2], args[3]);
