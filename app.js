@@ -118,9 +118,8 @@ function showUserAccountPage(username) {
     return;
   }
   
-  // Check if the logged-in user matches the URL
+  // Navigate to logged-in user's account page
   if (currentUser.username !== username) {
-    showNotification('Access denied');
     navigate(`/${currentUser.username}/account`);
     return;
   }
