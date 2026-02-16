@@ -1236,12 +1236,31 @@ body {
   }
 }
 
+/* Layout polish */
+.main > div {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+#userCopyPage,
+#userPage,
+#myCopiesPage,
+#copiesPage,
+#categoriesPage,
+#searchPage,
+#uploadPage,
+#loginPage,
+#registerPage {
+  padding-top: 24px;
+}
+
 /* Copy Detail */
 .copy-detail {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px;
+  border-radius: 16px;
+  padding: 28px;
 }
 
 .copy-detail .copy-actions {
@@ -1291,6 +1310,45 @@ body {
 
 #userCopyPage .page-header h1 {
   font-size: 1.75rem;
+}
+
+.copy-detail-page {
+  max-width: 900px;
+  margin: 0 auto 40px;
+  box-shadow: var(--shadow);
+}
+
+.copy-hero h2 {
+  font-size: 2rem;
+  margin: 8px 0 12px;
+}
+
+.copy-description {
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+}
+
+.install-panel {
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.install-command-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.install-command-box code {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
 }
 
 /* Owner Link */

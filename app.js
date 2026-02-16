@@ -82,7 +82,7 @@ async function showUserPage(username) {
 }
 
 async function showUserCopyPage(username, copySlug) {
-  pageHistory.push(window.location.hash.slice(1));
+  pageHistory.push(window.location.pathname || window.location.hash.slice(1));
   const copy = await API.getUserCopy(username, copySlug);
   if (copy.error) {
     showNotification('Copy not found');
@@ -93,26 +93,44 @@ async function showUserCopyPage(username, copySlug) {
   document.querySelectorAll('[id$="Page"]').forEach(p => p.style.display = 'none');
   document.getElementById('userCopyPage').style.display = 'block';
   document.getElementById('userCopyTitle').textContent = copy.name;
+
+  const installCmd = `clawfactory install ${copy.id}`;
+  const skills = (copy.skills || []).join(', ');
+  const files = Object.keys(copy.files || {});
   
   const detail = document.getElementById('userCopyDetail');
   detail.innerHTML = `
-    <div class="copy-detail">
-      <p class="copy-author">by <a href="#/${username}" onclick="navigate('/${username}')">@${username}</a></p>
-      <p>${copy.description}</p>
-      <div class="copy-meta">
-        <span>⭐ ${copy.rating_average || 0}</span>
-        <span>📦 ${copy.install_count || 0}</span>
-        <span>${copy.category}</span>
-        <span>v${copy.version}</span>
+    <article class="copy-detail copy-detail-page">
+      <div class="copy-hero">
+        <p class="copy-author">by <a href="/${username}" onclick="navigate('/${username}'); return false;">@${username}</a></p>
+        <h2>${copy.name}</h2>
+        <p class="copy-description">${copy.description || ''}</p>
+
+        <div class="copy-meta">
+          <span>⭐ ${copy.rating_average || 0}</span>
+          <span>📦 ${copy.install_count || 0}</span>
+          <span>${copy.category || 'others'}</span>
+          <span>v${copy.version || '1.0.0'}</span>
+        </div>
+
+        ${skills ? `<div class="copy-skills">${skills}</div>` : ''}
       </div>
-      <div class="copy-skills">${copy.skills?.join(', ')}</div>
+
+      <div class="install-panel">
+        <h3>Install</h3>
+        <div class="install-command-box">
+          <code id="installCommand">${installCmd}</code>
+          <button class="btn btn-primary" onclick="copyInstallCommand('${copy.id}')">Copy command</button>
+        </div>
+      </div>
+
       <div class="copy-actions">
-        <button class="btn btn-primary" onclick="installCopy('${copy.id}')">Install</button>
         <button class="btn btn-secondary" onclick="rateCopy('${copy.id}')">Rate</button>
       </div>
+
       <h3>Files</h3>
-      <pre>${Object.keys(copy.files || {}).join('\n')}</pre>
-    </div>
+      <pre>${files.length ? files.join('\n') : 'No files listed'}</pre>
+    </article>
   `;
 }
 
@@ -263,6 +281,11 @@ function installCopy(id) {
   const cmd = `clawfactory install ${id}`;
   navigator.clipboard.writeText(cmd).then(() => showNotification('Command copied!'));
   showNotification(`Run: ${cmd}`);
+}
+
+function copyInstallCommand(id) {
+  const cmd = `clawfactory install ${id}`;
+  navigator.clipboard.writeText(cmd).then(() => showNotification('Install command copied!'));
 }
 
 function rateCopy(id) {
