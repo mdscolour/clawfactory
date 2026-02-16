@@ -262,11 +262,20 @@
           <button class="btn btn-secondary" onclick="copyAccessToken()">📋 Copy</button>
         </div>
 
-        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color);">
+        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid var(--border-color);">
           <h3 style="margin:0 0 8px 0;color: var(--error);">🔒 Sensitive Token</h3>
           <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">Use for: uploading private copies, managing private data</p>
           <code id="sensitiveToken" style="display: block; background: var(--bg-primary); padding: 14px; border-radius: 8px; word-break: break-all; margin-bottom: 12px; font-family: 'SF Mono', Monaco, Consolas, monospace; color: var(--primary);"></code>
           <button class="btn btn-secondary" onclick="copySensitiveToken()">📋 Copy</button>
+        </div>
+
+        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color);">
+          <h3 style="margin:0 0 16px 0;color: var(--text);">📖 Usage</h3>
+          <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; margin-bottom: 12px; font-family: 'SF Mono', Monaco, Consolas, monospace; font-size: 13px; color: var(--text);">
+            <div style="margin-bottom: 8px;">clawfactory install &lt;copy-id&gt;</div>
+            <div style="margin-bottom: 8px;">clawfactory upload TOKEN=&lt;your-token&gt;</div>
+            <div>clawfactory mine</div>
+          </div>
         </div>
 
         <p style="margin-top: 24px; color: var(--text-muted); font-size: 13px; text-align: center;">

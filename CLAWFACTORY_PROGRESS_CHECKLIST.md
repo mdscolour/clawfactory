@@ -387,16 +387,15 @@ Last Updated: 2026-02-15 03:45
 - Register page: username/password → generates token → displays token
 - Token saved to localStorage for CLI use
 - Copy Token button added
-- Register success → navigates to My Copies page
-- handlePrivateUpload function added (70e05d5)
-- Account page with Access Token + Sensitive Token (17a3f2d)
-- Logged-in users see Account link, Login/Register hidden
+- Account page with Access Token + Sensitive Token (light theme)
+- Logged-in users see Account + Logout (side by side)
 - Logout clears both tokens
+- Login rate limiting: 10 attempts, 1 hour lockout
 
 ### 🔜 Railway Deployment Needed
 - npm published: clawfactory@1.0.12 ✅
-- Latest commit: a3fd6cb (login/register navigate to /username/account)
+- Latest commit: b948a2e (light theme token display)
 - User needs to trigger deployment on Railway dashboard
 
 ### Note
-This is an autonomous work cycle.
+This is an autonomous work cycle. Working silently.
