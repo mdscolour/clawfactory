@@ -50,10 +50,30 @@ function navigate(route) {
 }
 
 function goBack() {
+  // Try page history first
   if (pageHistory.length > 0) {
     const prev = pageHistory.pop();
     window.location.hash = prev;
     handleRoute();
+    return;
+  }
+  
+  // Try document.referrer
+  if (document.referrer && document.referrer.includes(window.location.host)) {
+    window.history.back();
+    return;
+  }
+  
+  // Fallback to home or previous page
+  const currentHash = window.location.hash.slice(1);
+  const parts = currentHash.split('/').filter(Boolean);
+  
+  if (parts.length >= 2) {
+    // If on user copy page, go back to user page
+    navigate(`/${parts[0]}`);
+  } else if (parts.length === 1) {
+    // If on user page, go home
+    navigate('/');
   } else {
     navigate('/');
   }
