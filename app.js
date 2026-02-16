@@ -470,11 +470,13 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
   const res = await API.register(username, password);
   console.log('[Register] Response:', res);
   if (res.success && res.token) {
-    document.getElementById('registerForm').style.display = 'none';
-    document.getElementById('tokenResult').style.display = 'block';
-    document.getElementById('userToken').textContent = res.token;
-    window.pendingToken = res.token;
-    window.pendingUser = res.user;  // Save user info
+    // Same as login: save token and navigate to account
+    localStorage.setItem('clawfactory_token', res.token);
+    API.setToken(res.token);
+    currentUser = res.user;
+    updateAuthUI();
+    showNotification('Registered!');
+    navigate(`/${username}/account`);
   } else {
     showNotification('Registration failed: ' + (res.error || res.message || 'Unknown error'));
   }
