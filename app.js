@@ -415,18 +415,30 @@ document.getElementById('loginPasswordForm')?.addEventListener('submit', async (
   }
   
   console.log('[Login] Attempting with username:', username);
-  const res = await API.login(username, password);
-  console.log('[Login] Full response:', JSON.stringify(res));
   
-  if (res.success && res.token) {
-    updateAuthUI();
-    showNotification('Logged in!');
-    navigate(`/${username}/account`);
-  } else {
-    const msg = res.remainingMin 
-      ? `Too many attempts. Try again in ${res.remainingMin} minutes.`
-      : res.error || 'Login failed';
-    showNotification(msg);
+  try {
+    const res = await API.login(username, password);
+    console.log('[Login] Full response:', JSON.stringify(res));
+    
+    if (res.success && res.token) {
+      console.log('[Login] Success! Saving token...');
+      localStorage.setItem('clawfactory_token', res.token);
+      API.setToken(res.token);
+      await checkAuth();
+      console.log('[Login] currentUser:', currentUser);
+      updateAuthUI();
+      showNotification('Logged in!');
+      console.log('[Login] Navigating to /' + username + '/account');
+      navigate(`/${username}/account`);
+    } else {
+      const msg = res.remainingMin 
+        ? `Too many attempts. Try again in ${res.remainingMin} minutes.`
+        : res.error || 'Login failed';
+      showNotification(msg);
+    }
+  } catch (err) {
+    console.error('[Login] Error:', err);
+    showNotification('Login error: ' + err.message);
   }
 });
 
