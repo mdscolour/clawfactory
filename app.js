@@ -5,7 +5,7 @@ let currentUser = null;
 let pageHistory = [];
 
 async function init() {
-  checkAuth();
+  await checkAuth();
   loadFeaturedCopies();
   loadCategories();
   handleRoute();
@@ -437,10 +437,11 @@ document.getElementById('loginPasswordForm')?.addEventListener('submit', async (
       console.log('[Login] Success! Saving token...');
       localStorage.setItem('clawfactory_token', res.token);
       API.setToken(res.token);
-      await checkAuth();
-      console.log('[Login] currentUser:', currentUser);
+      // Use user info from response directly
+      currentUser = res.user;
       updateAuthUI();
       showNotification('Logged in!');
+      console.log('[Login] currentUser:', currentUser);
       console.log('[Login] Navigating to /' + username + '/account');
       navigate(`/${username}/account`);
     } else {
@@ -472,6 +473,7 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
     document.getElementById('tokenResult').style.display = 'block';
     document.getElementById('userToken').textContent = res.token;
     window.pendingToken = res.token;
+    window.pendingUser = res.user;  // Save user info
   } else {
     showNotification('Registration failed: ' + (res.error || res.message || 'Unknown error'));
   }
@@ -481,13 +483,20 @@ function saveTokenAndContinue() {
   if (window.pendingToken) {
     localStorage.setItem('clawfactory_token', window.pendingToken);
     API.setToken(window.pendingToken);
-    checkAuth().then(() => {
+    // Set user directly from pendingToken info
+    if (window.pendingUser) {
+      currentUser = window.pendingUser;
       updateAuthUI();
       showNotification('Registered! Token saved!');
-      // Navigate to account page
-      const username = currentUser?.username || 'user';
-      navigate(`/${username}/account`);
-    });
+      navigate(`/${currentUser.username}/account`);
+    } else {
+      checkAuth().then(() => {
+        updateAuthUI();
+        showNotification('Registered! Token saved!');
+        const username = currentUser?.username || 'user';
+        navigate(`/${username}/account`);
+      });
+    }
   }
 }
 

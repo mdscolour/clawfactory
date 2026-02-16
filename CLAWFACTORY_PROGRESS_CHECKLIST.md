@@ -398,14 +398,13 @@ Last Updated: 2026-02-15 03:45
 - `/api/copies/:id/private` - API endpoint for private copies
 
 ### ✅ Login Flow Implemented
-- Login success → save token → update UI → navigate to /username/account
-- Account page: redirect to login if not authenticated
-- Account page: redirect to own account if trying to access other user's account
+- Login success → save token → update UI → navigate to /username/account ✅
+- Backend login: `[Login] Success!` ✅
+- Backend `/api/auth/me` now supports clawfactory_xxx token format ✅
 
 ### 🔜 Railway Deployment Needed
-- npm published: clawfactory@1.0.12 ✅
-- Latest commit: c6a0589 (auth check on account page)
-- User needs to trigger deployment on Railway
+- Latest commit: 46eba60 (fix token format support)
+- User needs to redeploy to apply fix
 
 ### Note
 This is an autonomous work cycle. Working silently.
