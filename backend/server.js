@@ -349,7 +349,8 @@ const httpServer = http.createServer((req, res) => {
   const method = req.method;
 
   // Static files
-  if (method === 'GET' && !pathName.startsWith('/api') && !pathName.startsWith('/.') && pathName !== '/health') {
+  // Serve static files, but keep API routes under /api/*
+  if (method === 'GET' && !pathName.startsWith('/api/') && !pathName.startsWith('/.') && pathName !== '/health') {
     let filePath = pathName === '/' ? '/index.html' : pathName;
     const fullPath = path.join(FRONTEND_DIR, filePath);
     try {
