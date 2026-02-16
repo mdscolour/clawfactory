@@ -229,20 +229,60 @@ function showNotification(msg) {
 document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const token = document.getElementById('loginToken').value.trim();
-  if (!token) {
-    showNotification('Please enter your token');
-    return;
-  }
-  localStorage.setItem('clawfactory_token', token);
-  API.setToken(token);
-  await checkAuth();
-  if (currentUser) {
-    showNotification('Token saved!');
-    switchPage('home');
-  } else {
-    showNotification('Invalid token');
+  if (token) {
+    // Token login
+    localStorage.setItem('clawfactory_token', token);
+    API.setToken(token);
+    await checkAuth();
+    if (currentUser) {
+      showNotification('Token saved!');
+      switchPage('home');
+    } else {
+      showNotification('Invalid token');
+    }
   }
 });
+
+document.getElementById('loginPasswordForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPassword').value;
+  
+  const res = await API.login(username, password);
+  if (res.success && res.token) {
+    showNotification('Logged in!');
+    switchPage('home');
+  } else {
+    showNotification(res.error || 'Login failed');
+  }
+});
+
+document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const username = document.getElementById('regUsername').value;
+  const password = document.getElementById('regPassword').value;
+  
+  const res = await API.register(username, password);
+  if (res.success && res.token) {
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('tokenResult').style.display = 'block';
+    document.getElementById('userToken').textContent = res.token;
+    window.pendingToken = res.token;
+  } else {
+    showNotification(res.error || 'Registration failed');
+  }
+});
+
+function saveTokenAndContinue() {
+  if (window.pendingToken) {
+    localStorage.setItem('clawfactory_token', window.pendingToken);
+    API.setToken(window.pendingToken);
+    checkAuth().then(() => {
+      showNotification('Token saved!');
+      switchPage('home');
+    });
+  }
+}
 
 document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();

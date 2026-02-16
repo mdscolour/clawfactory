@@ -95,10 +95,10 @@ const API = {
     return result;
   },
 
-  async login(username) {
+  async login(username, password = null) {
     const result = await this.request('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username })
+      body: JSON.stringify({ username, password })
     });
     
     if (result.success && result.token) {

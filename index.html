@@ -158,14 +158,58 @@
       <section class="page-header">
         <h1>Setup Token</h1>
       </section>
+      
+      <!-- Token Login -->
       <form id="loginForm" class="auth-form">
         <div class="form-group">
           <label>Your Access Token</label>
-          <input type="text" id="loginToken" required placeholder="Paste your token from clawfactory.ai">
-          <small style="color: var(--text-muted);">Get your token from clawfactory.ai → Settings → API Tokens</small>
+          <input type="text" id="loginToken" placeholder="Paste your token">
+          <small style="color: var(--text-muted);">Get token from clawfactory.ai → Settings</small>
         </div>
-        <button type="submit" class="btn btn-primary">Save Token</button>
+        <button type="submit" class="btn btn-primary">Use Token</button>
       </form>
+      
+      <p style="margin: 20px 0; text-align: center;">— or —</p>
+      
+      <!-- Username/Password Login -->
+      <form id="loginPasswordForm" class="auth-form">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="loginUsername" placeholder="Your username">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="Your password">
+        </div>
+        <button type="submit" class="btn btn-secondary">Login</button>
+        <p style="margin-top:16px;">Need a token? <a href="#" onclick="switchPage('register'); return false;">Register</a></p>
+      </form>
+    </div>
+
+    <div id="registerPage" style="display:none;">
+      <section class="page-header">
+        <h1>Get Token</h1>
+      </section>
+      <form id="registerForm" class="auth-form">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="regUsername" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="regPassword" required>
+          <small style="color: var(--text-muted);">Your password is only used to generate a token.</small>
+        </div>
+        <button type="submit" class="btn btn-primary">Get Token</button>
+        <p style="margin-top:16px;">Already have a token? <a href="#" onclick="switchPage('login'); return false;">Use Token</a></p>
+      </form>
+      <div id="tokenResult" style="display:none; margin-top: 20px; padding: 16px; background: var(--bg-secondary); border-radius: 8px;">
+        <h3 style="margin-bottom: 12px;">Your Token</h3>
+        <code id="userToken" style="display: block; padding: 12px; background: var(--bg-primary); border-radius: 4px; word-break: break-all; margin-bottom: 12px;"></code>
+        <p style="color: var(--text-muted); margin-bottom: 12px;">Copy this token and use it in CLI:</p>
+        <pre style="background: var(--bg-primary); padding: 12px; border-radius: 4px; font-size: 12px;">export CLAWFACTORY_TOKEN=your-token</pre>
+        <button class="btn btn-primary" style="margin-top: 12px;" onclick="saveTokenAndContinue()">Save Token & Continue</button>
+      </div>
     </div>
 
     <!-- My Copies Page -->
