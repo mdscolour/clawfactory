@@ -48,6 +48,36 @@ async function search(query) {
   results.forEach(c => console.log(`  ${COLORS.cyan}${c.id}${COLORS.reset} - ${c.name}`));
 }
 
+async function mine() {
+  const token = getToken();
+  if (!token) error('Please set CLAWFACTORY_TOKEN or save token');
+
+  const isPrivate = args.includes('--private') || args.includes('-p');
+  log(`\n📦 Your ${isPrivate ? 'private' : 'public'} copies:\n`, 'cyan');
+
+  const userRes = await fetchJson(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+  if (userRes.error) error('Session expired or invalid token.');
+  const user = userRes.user;
+
+  const userPage = await fetchJson(`${API_BASE}/api/users/${user.username}`);
+  if (userPage.error) error('Could not fetch your copies');
+
+  const copies = (userPage.copies || []).filter(c => isPrivate ? c.is_private : !c.is_private);
+  
+  if (!copies.length) {
+    log(`You haven't uploaded any ${isPrivate ? 'private' : 'public'} copies yet.`, 'yellow');
+    return;
+  }
+
+  log(`Found ${copies.length} ${isPrivate ? 'private' : 'public'} copies:\n`, 'green');
+  copies.forEach(c => {
+    console.log(`  ${COLORS.cyan}${c.id}${COLORS.reset}`);
+    console.log(`    ${c.name} (v${c.version})`);
+    console.log(`    ⭐ ${c.rating_average || 0} | 📦 ${c.install_count || 0}`);
+    console.log('');
+  });
+}
+
 async function copy(copyId) {
   if (!copyId) error('Usage: clawfactory copy <copy-id>');
   await install(copyId);
@@ -433,6 +463,8 @@ ${COLORS.green}Commands:${COLORS.reset}
   copy <copy-id>           Alias for install
   hottest                 Install the top-rated copy
   search <query>          Search for copies
+  mine                    List your copies
+  mine --private          List your private copies
   upload                   Upload a copy (requires token)
   publish [dir]            Publish local directory
   secret upload            Upload with .env secrets
@@ -462,6 +494,7 @@ switch (cmd) {
   case 'copy': copy(args[1]); break;
   case 'hottest': hottest(); break;
   case 'search': case 's': search(args[1]); break;
+  case 'mine': mine(); break;
   case 'upload': upload(); break;
   case 'publish': case 'pub': publish(args[1] || '.'); break;
   case 'secret': 
