@@ -5,20 +5,14 @@
  */
 
 const API = {
-  baseUrl: '',
-  useBackend: true,
+  baseUrl: '',  // Always use relative path (same-origin)
   token: null,
 
   init() {
-    // Always use relative paths (same-origin on Railway)
-    this.useBackend = true;
+    // Always use same-origin (works on Railway)
     this.baseUrl = '';
-    console.log('[API] Using relative backend URL');
-    
-    // Load saved token
-    if (typeof localStorage !== 'undefined') {
-      this.token = localStorage.getItem('clawfactory_token');
-    }
+    this.token = localStorage.getItem('clawfactory_token') || null;
+    console.log('[API] Initialized with relative URL');
   },
 
   setToken(token) {
