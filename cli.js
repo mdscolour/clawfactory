@@ -461,14 +461,14 @@ ${COLORS.green}Usage:${COLORS.reset}
 ${COLORS.green}Commands:${COLORS.reset}
   install <copy-id>        Install a copy
   copy <copy-id>           Alias for install
-  hottest                 Install the top-rated copy
-  search <query>          Search for copies
-  mine                    List your copies
-  mine --private          List your private copies
   upload                   Upload a copy (requires token)
   publish [dir]            Publish local directory
   secret upload            Upload with .env secrets
   secret install <id> <key> Install encrypted copy
+  hottest                 Install the top-rated copy
+  mine                    List your copies
+  mine --private          List your private copies
+  search <query>          Search for copies
 
 ${COLORS.green}Setup:${COLORS.reset}
   Export your token from clawfactory.ai:
@@ -477,11 +477,13 @@ ${COLORS.green}Setup:${COLORS.reset}
 ${COLORS.green}Examples:${COLORS.reset}
   clawfactory install polymarket-trader
   clawfactory copy polymarket-trader
-  clawfactory hottest
-  clawfactory search trading
+  clawfactory upload
+  clawfactory publish .
+  clawfactory secret upload
   clawfactory mine
   clawfactory mine --private
-  clawfactory secret upload
+  clawfactory hottest
+  clawfactory search trading
 
 ${COLORS.green}Website:${COLORS.reset}
   https://clawfactory.ai
