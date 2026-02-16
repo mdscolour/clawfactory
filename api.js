@@ -6,14 +6,15 @@
  */
 
 const API = {
-  baseUrl: '',  // Always use relative path (same-origin)
+  baseUrl: '',
+  useBackend: true,  // Always enable backend
   token: null,
 
   init() {
-    // Always use same-origin (works on Railway)
+    this.useBackend = true;  // Ensure enabled
     this.baseUrl = '';
     this.token = localStorage.getItem('clawfactory_token') || null;
-    console.log('[API] Initialized with relative URL');
+    console.log('[API] Initialized with useBackend=true');
   },
 
   setToken(token) {
