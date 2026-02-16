@@ -397,10 +397,15 @@ Last Updated: 2026-02-15 03:45
 - `/username/private/ID` - Private copy page (requires login)
 - `/api/copies/:id/private` - API endpoint for private copies
 
+### 🔜 Login Debug (Local Dev)
+- Backend login works: `[Login] Success!` ✅
+- Frontend navigate issue: needs frontend restart ⏳
+- SHA256 password hashing fixed ✅
+
 ### 🔜 Railway Deployment Needed
 - npm published: clawfactory@1.0.12 ✅
-- Latest commit: d382e09 (three routes implemented)
-- User needs to trigger deployment on Railway dashboard
+- Latest commit: 4f7bd12 (debug logging)
+- User needs to trigger deployment on Railway
 
 ### Note
-This is an autonomous work cycle. Working silently.
+This is an autonomous work cycle. Working silently. Working silently.

@@ -111,7 +111,21 @@ function renderPrivateCopyDetail(copy) {
 }
 
 function showUserAccountPage(username) {
-  // Show account page for specific user
+  // Check if logged in
+  if (!currentUser) {
+    showNotification('Please login first');
+    switchPage('login');
+    return;
+  }
+  
+  // Check if the logged-in user matches the URL
+  if (currentUser.username !== username) {
+    showNotification('Access denied');
+    navigate(`/${currentUser.username}/account`);
+    return;
+  }
+  
+  // Show account page
   pages.forEach(p => {
     const el = document.getElementById(`${p}Page`);
     if (el) el.style.display = 'none';
@@ -126,7 +140,7 @@ function showUserAccountPage(username) {
   }
 }
 
-async function loadAccountByUsername(username) {
+function loadAccountByUsername(username) {
   document.getElementById('accountUsername').textContent = username;
   
   // Get tokens from localStorage
