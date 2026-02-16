@@ -479,6 +479,8 @@ ${COLORS.green}Examples:${COLORS.reset}
   clawfactory copy polymarket-trader
   clawfactory hottest
   clawfactory search trading
+  clawfactory mine
+  clawfactory mine --private
   clawfactory secret upload
 
 ${COLORS.green}Website:${COLORS.reset}

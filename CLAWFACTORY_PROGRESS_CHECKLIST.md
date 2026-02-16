@@ -380,7 +380,7 @@ Last Updated: 2026-02-15 03:45
 - Removed: login, register, googleLogin, logout functions
 - Removed: list command
 - Token-based auth via CLAWFACTORY_TOKEN env or ~/.clawfactory/token file
-- New commands: install, copy, hottest, search, upload, secret upload, secret install, publish
+- New commands: install, copy, hottest, search, mine, mine --private, upload, secret upload, secret install, publish
 - Fixed npm publishConfig warning
 
 ### ✅ Frontend Simplified (2026-02-16)
