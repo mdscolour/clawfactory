@@ -384,12 +384,13 @@ Last Updated: 2026-02-15 03:45
 - Fixed npm publishConfig warning
 
 ### ✅ Frontend Simplified (2026-02-16)
-- Login page now asks for token instead of username/password
-- Removed: register page, Google login
-- Auth via localStorage token or CLI token file
+- Login page now asks for token OR username/password
+- Register page returns token after registration
+- Users can now GET tokens from web UI
+- Token saved to localStorage for CLI use
 
 ### 🔜 Waiting for npm publish
-- Version 1.0.10 ready to publish (GitHub commit: 024c2ed)
+- Version 1.0.10 ready to publish (GitHub commit: 6dd4af2)
 - Fixed publishConfig warning
 - User needs: `npm publish --otp=验证码`
 
