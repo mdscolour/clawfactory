@@ -159,17 +159,6 @@
         <h1>Login</h1>
       </section>
       
-      <!-- Token Login -->
-      <form id="loginForm" class="auth-form">
-        <div class="form-group">
-          <label>Your Access Token</label>
-          <input type="text" id="loginToken" placeholder="Paste your token">
-        </div>
-        <button type="submit" class="btn btn-primary">Use Token</button>
-      </form>
-      
-      <p style="margin: 20px 0; text-align: center;">— or —</p>
-      
       <!-- Username/Password Login -->
       <form id="loginPasswordForm" class="auth-form">
         <div class="form-group">
@@ -180,8 +169,19 @@
           <label>Password</label>
           <input type="password" id="loginPassword" placeholder="Your password">
         </div>
-        <button type="submit" class="btn btn-secondary">Login</button>
+        <button type="submit" class="btn btn-primary">Login</button>
         <p style="margin-top:16px;">Don't have an account? <a href="#" onclick="switchPage('register'); return false;">Register</a></p>
+      </form>
+      
+      <p style="margin: 20px 0; text-align: center;">— or —</p>
+      
+      <!-- Token Login -->
+      <form id="loginForm" class="auth-form">
+        <div class="form-group">
+          <label>Your Access Token</label>
+          <input type="text" id="loginToken" placeholder="Paste your token">
+        </div>
+        <button type="submit" class="btn btn-secondary">Use Token</button>
       </form>
     </div>
 

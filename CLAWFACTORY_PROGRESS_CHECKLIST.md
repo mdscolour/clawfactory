@@ -386,15 +386,15 @@ Last Updated: 2026-02-15 03:45
 - Login page: token input OR username/password login
 - Register page: username/password → generates token → displays token
 - Token saved to localStorage for CLI use
-- Copy Token button added
 - Account page with Access Token + Sensitive Token (light theme)
+- CLI usage examples shown on account page
 - Logged-in users see Account + Logout (side by side)
 - Logout clears both tokens
 - Login rate limiting: 10 attempts, 1 hour lockout
 
 ### 🔜 Railway Deployment Needed
 - npm published: clawfactory@1.0.12 ✅
-- Latest commit: b948a2e (light theme token display)
+- Latest commit: f8b4678 (CLI: support TOKEN=<your-token> format)
 - User needs to trigger deployment on Railway dashboard
 
 ### Note
