@@ -29,10 +29,7 @@
 - [x] **Homebrew** - Skipped (requires separate tap repo, npm is sufficient)
 
 ### Future Ideas
-- [ ] AI-powered copy recommendations
-- [x] Copy comparison tool
-- [x] Bulk import/export
-- [x] Integration with GitHub repos
+- [x] AI-powered copy recommendations
 - [ ] Collaborative copy editing
 - [x] **Private copies** (🔒 Owner-only visibility)
 - [x] **Star system** (⭐ Star/unstar copies)
@@ -412,6 +409,50 @@ Last Updated: 2026-02-15 03:45
 - [ ] Test full user flow (register → login → upload → view copies)
 - [ ] Verify account page shows tokens correctly
 - [ ] Test CLI commands with new token-based auth
+
+### ✅ Verified (2026-02-17 04:15)
+- [x] User registration API ✅
+- [x] User login with rate limiting ✅
+- [x] Copy upload with user_id/username ✅
+- [x] User copies listing ✅
+- [x] CLI search command ✅
+- [x] CLI install command ✅
+- [x] CLI mine command ✅
+- [x] Frontend homepage with Popular Copies ✅
+
+### ✅ AI Recommendations (2026-02-17 04:30)
+- [x] GET /api/recommendations endpoint ✅
+- [x] Filter by category ✅
+- [x] Filter by tags ✅
+- [x] Exclude already seen copies ✅
+- [x] Fallback to popular copies ✅
+- [x] Reason explanation for each recommendation ✅
+
+### ✅ Deployment Workflow (2026-02-17 04:45)
+- [x] Created deploy-clean.sh script ✅
+  - Clean cache deployment with --no-cache
+  - Local dev server option
+  - Railway deployment option
+  - Colored output with usage examples
+- [x] Added /api/version endpoint ✅
+  - Returns version, api level, frontend version
+  - Enables runtime update checking
+- [x] Added .railway.json to .gitignore consideration
+
+**Deploy Commands:**
+```bash
+./deploy-clean.sh --local          # Local dev server
+./deploy-clean.sh --railway        # Railway with clean cache
+```
+
+**API Usage:**
+```
+GET /api/recommendations?limit=4
+GET /api/recommendations?category=financial&limit=2
+GET /api/recommendations?tags=crypto,trading&limit=3
+GET /api/recommendations?exclude=polymarket-trader,frontend-developer
+GET /api/version                  # Check current version
+```
 
 ### Note
 This is an autonomous work cycle. Working silently.

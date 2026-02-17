@@ -143,6 +143,32 @@ function parseJson(str, defaultVal = null) {
   try { return JSON.parse(str); } catch { return defaultVal; }
 }
 
+function calculateRecommendationReason(copy, prefs) {
+  const reasons = [];
+  const copyTags = parseJson(copy.tags, []).map(t => t.toLowerCase());
+  const copySkills = parseJson(copy.skills, []).map(s => s.toLowerCase());
+  
+  if (prefs.category && copy.category === prefs.category) {
+    reasons.push(`Similar to ${prefs.category} copies you've seen`);
+  }
+  
+  if (prefs.tags) {
+    const tagList = prefs.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t);
+    const matchingTags = copyTags.filter(t => tagList.includes(t));
+    if (matchingTags.length > 0) {
+      reasons.push(`Matches your interest in "${matchingTags[0]}"`);
+    }
+  }
+  
+  if (copy.rating_average >= 4) {
+    reasons.push('Highly rated by the community');
+  } else if (copy.install_count > 10) {
+    reasons.push('Popular among users');
+  }
+  
+  return reasons.length > 0 ? reasons[0] : 'Recommended for you';
+}
+
 const salt = 'clawfactory-2024';
 
 function hashPassword(password) {
@@ -216,6 +242,14 @@ function seedExampleData() {
 
 const routes = {
   'GET /health': () => ({ status: 'ok', timestamp: new Date().toISOString() }),
+
+  'GET /api/version': () => ({
+    version: '1.0.12',
+    name: 'ClawFactory',
+    api: '1.0.0',
+    frontend: '1.0.12',
+    lastUpdated: new Date().toISOString()
+  }),
 
   'GET /.well-known/ai-manifest.json': () => ({
     name: 'ClawFactory', description: 'OpenClaw Copy Registry', version: '1.0.0',
@@ -429,6 +463,65 @@ const routes = {
   'GET /api/categories': () => getAll('SELECT category, COUNT(*) as count FROM copies WHERE is_public = 1 GROUP BY category'),
 
   'GET /api/featured': () => getAll('SELECT * FROM copies WHERE is_public = 1 ORDER BY install_count DESC, rating_average DESC LIMIT 4').map(c => ({ ...c, skills: parseJson(c.skills) })),
+
+  // AI-powered recommendations based on user's preferences
+  'GET /api/recommendations': (req) => {
+    const { user_id, category, tags, exclude, limit = 4 } = req.query;
+    
+    let query = 'SELECT * FROM copies WHERE is_public = 1';
+    const params = [];
+    
+    // Exclude already seen/owned copies
+    if (exclude) {
+      const excluded = exclude.split(',').map(e => e.trim()).filter(e => e);
+      if (excluded.length > 0) {
+        query += ' AND id NOT IN (' + excluded.map(() => '?').join(',') + ')';
+        params.push(...excluded);
+      }
+    }
+    
+    // Filter by category if provided
+    if (category && category !== 'all') {
+      query += ' AND category = ?';
+      params.push(category);
+    }
+    
+    // Filter by tags if provided (match any tag)
+    if (tags) {
+      const tagList = tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t);
+      if (tagList.length > 0) {
+        query += ' AND (';
+        const tagConditions = tagList.map(() => 'LOWER(tags) LIKE ?').join(' OR ');
+        query += tagConditions;
+        params.push(...tagList.map(t => `%${t}%`));
+        query += ')';
+      }
+    }
+    
+    query += ' ORDER BY rating_average DESC, install_count DESC LIMIT ?';
+    params.push(parseInt(limit));
+    
+    const recommendations = getAll(query, params).map(c => ({ 
+      ...c, 
+      skills: parseJson(c.skills), 
+      tags: parseJson(c.tags),
+      reason: calculateRecommendationReason(c, { category, tags })
+    }));
+    
+    // If no specific matches, return popular copies as fallback
+    if (recommendations.length === 0) {
+      const fallback = getAll('SELECT * FROM copies WHERE is_public = 1 ORDER BY install_count DESC, rating_average DESC LIMIT ?', [parseInt(limit)])
+        .map(c => ({ 
+          ...c, 
+          skills: parseJson(c.skills), 
+          tags: parseJson(c.tags),
+          reason: 'Popular choice'
+        }));
+      return { recommendations: fallback, fallback: true };
+    }
+    
+    return { recommendations };
+  },
 
   'GET /api/admin/stats': () => ({
     totalCopies: getOne('SELECT COUNT(*) as count FROM copies')?.count || 0,
