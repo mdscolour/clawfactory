@@ -273,7 +273,7 @@ const routes = {
   },
 
   'POST /api/copies': (req) => {
-    const { name, description, author, version, category, model, skills, tags, features, files, memory, user_id, username, is_private, copyId } = req.body;
+    const { name, description, author, version, category, model, skills, tags, features, files, memory, user_id, username, is_public, is_private, copyId } = req.body;
     // Allow custom copyId or generate from name
     const id = copyId || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     const existing = getOne('SELECT * FROM copies WHERE id = ?', [id]);
