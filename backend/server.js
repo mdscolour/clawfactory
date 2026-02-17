@@ -106,6 +106,31 @@ async function initDb() {
     // Column already exists
   }
 
+  // Collaborative editing tables
+  db.run(`CREATE TABLE IF NOT EXISTS contributors (
+    id TEXT PRIMARY KEY,
+    copy_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    username TEXT NOT NULL,
+    role TEXT DEFAULT 'contributor',
+    contribution_count INTEGER DEFAULT 0,
+    first_contributed TEXT DEFAULT (datetime('now')),
+    last_contributed TEXT DEFAULT (datetime('now')),
+    UNIQUE(copy_id, user_id)
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS changes (
+    id TEXT PRIMARY KEY,
+    copy_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    username TEXT NOT NULL,
+    change_type TEXT NOT NULL,
+    description TEXT,
+    version_before TEXT,
+    version_after TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  )`);
+
   db.run(`CREATE TABLE IF NOT EXISTS ratings (
     id TEXT PRIMARY KEY, copy_id TEXT NOT NULL, user_id TEXT, rating INTEGER NOT NULL,
     created_at TEXT DEFAULT (datetime('now'))
@@ -521,6 +546,68 @@ const routes = {
     }
     
     return { recommendations };
+  },
+
+  // Collaborative editing: get contributors for a copy
+  'GET /api/copies/:id/contributors': (req) => {
+    const contributors = getAll('SELECT * FROM contributors WHERE copy_id = ? ORDER BY contribution_count DESC LIMIT 10', [req.params.id]);
+    return { contributors };
+  },
+
+  // Collaborative editing: get change history for a copy
+  'GET /api/copies/:id/changes': (req) => {
+    const { limit = 20 } = req.query;
+    const changes = getAll('SELECT * FROM changes WHERE copy_id = ? ORDER BY created_at DESC LIMIT ?', [req.params.id, parseInt(limit)]);
+    return { changes };
+  },
+
+  // Collaborative editing: record a change
+  'POST /api/copies/:id/change': (req) => {
+    const { user_id, username, change_type, description, version_before, version_after } = req.body;
+    const copyId = req.params.id;
+    
+    // Update or add contributor
+    const existing = getOne('SELECT * FROM contributors WHERE copy_id = ? AND user_id = ?', [copyId, user_id]);
+    if (existing) {
+      run('UPDATE contributors SET contribution_count = contribution_count + 1, last_contributed = datetime("now") WHERE id = ?', [existing.id]);
+    } else {
+      run('INSERT INTO contributors (id, copy_id, user_id, username, contribution_count) VALUES (?, ?, ?, ?, 1)',
+        [generateId(), copyId, user_id, username]);
+    }
+    
+    // Record the change
+    run('INSERT INTO changes (id, copy_id, user_id, username, change_type, description, version_before, version_after) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [generateId(), copyId, user_id, username, change_type, description || change_type, version_before, version_after]);
+    
+    return { success: true };
+  },
+
+  // Collaborative editing: add comment on copy
+  'POST /api/copies/:id/comment': (req) => {
+    const { user_id, author, text } = req.body;
+    const commentId = generateId();
+    run('INSERT INTO comments (id, copy_id, user_id, author, text) VALUES (?, ?, ?, ?, ?)',
+      [commentId, req.params.id, user_id, author, text]);
+    
+    // Update contributor count
+    const existing = getOne('SELECT * FROM contributors WHERE copy_id = ? AND user_id = ?', [req.params.id, user_id]);
+    if (existing) {
+      run('UPDATE contributors SET contribution_count = contribution_count + 1, last_contributed = datetime("now") WHERE id = ?', [existing.id]);
+    }
+    
+    return { success: true, id: commentId };
+  },
+
+  // Collaborative editing: get comments for a copy
+  'GET /api/copies/:id/comments': (req) => {
+    const comments = getAll('SELECT * FROM comments WHERE copy_id = ? ORDER BY created_at ASC', [req.params.id]);
+    return { comments };
+  },
+
+  // Get user's contributions across all copies
+  'GET /api/users/:userId/contributions': (req) => {
+    const contributions = getAll('SELECT c.*, cont.contribution_count, cont.first_contributed, cont.last_contributed FROM contributors cont JOIN copies c ON cont.copy_id = c.id WHERE cont.user_id = ? ORDER BY cont.last_contributed DESC', [req.params.userId]);
+    return { contributions };
   },
 
   'GET /api/admin/stats': () => ({

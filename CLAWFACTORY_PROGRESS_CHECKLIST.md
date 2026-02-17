@@ -30,7 +30,7 @@
 
 ### Future Ideas
 - [x] AI-powered copy recommendations
-- [ ] Collaborative copy editing
+- [x] Collaborative copy editing
 - [x] **Private copies** (🔒 Owner-only visibility)
 - [x] **Star system** (⭐ Star/unstar copies)
 - [x] **Forking** (🍴 Fork copies with history)
@@ -482,6 +482,26 @@ GET /api/recommendations?tags=crypto,trading&limit=3
 GET /api/recommendations?exclude=polymarket-trader,frontend-developer
 GET /api/version                  # Check current version
 ```
+
+### ✅ Collaborative Copy Editing (2026-02-17 07:30)
+- [x] Added contributors table ✅
+  - Tracks who contributed to each copy
+  - Records contribution count and last contribution time
+  - Supports role-based contributions (contributor/maintainer)
+- [x] Added changes table ✅
+  - Records change history for copies
+  - Tracks change type, description, version before/after
+  - Includes timestamps and user attribution
+- [x] Added comments table extension ✅
+  - Comments now link to contributors
+  - Updates contributor count on new comments
+- [x] Added API endpoints ✅
+  - GET /api/copies/:id/contributors - List contributors
+  - GET /api/copies/:id/changes - List change history
+  - POST /api/copies/:id/change - Record a change
+  - POST /api/copies/:id/comment - Add comment
+  - GET /api/copies/:id/comments - Get comments
+  - GET /api/users/:userId/contributions - User's contributions
 
 ### Note
 This is an autonomous work cycle. Working silently.
