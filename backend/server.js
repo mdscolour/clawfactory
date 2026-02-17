@@ -207,8 +207,8 @@ function seedExampleData() {
   for (const ex of examples) {
     const userId = seedUsers.find(u => u.username === ex.username)?.id || 'seed';
     try {
-      run(`INSERT INTO copies (id, user_id, username, name, description, author, version, category, model, skills, tags, features) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [ex.id, userId, ex.username, ex.name, ex.description, ex.author, ex.version, ex.category, model||null, JSON.stringify(ex.skills), JSON.stringify(ex.tags), JSON.stringify(ex.features)]);
+      run(`INSERT INTO copies (id, user_id, username, name, description, author, version, category, model, skills, tags, features, is_public) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [ex.id, userId, ex.username, ex.name, ex.description, ex.author, ex.version, ex.category, model||null, JSON.stringify(ex.skills), JSON.stringify(ex.tags), JSON.stringify(ex.features), 1]);
     } catch (e) {}
   }
   console.log('🌱 Seed complete!');
@@ -302,8 +302,8 @@ const routes = {
       return { success: true, id, isUpdate: true, version: newVersion };
     } else {
       // Insert new
-      run(`INSERT INTO copies (id, user_id, username, name, description, author, version, category, model, skills, tags, features, files, memory, is_private) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, user_id||'anonymous', username, name, description, author, version||'1.0.0', category, model||null, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_private?1:0]);
+      run(`INSERT INTO copies (id, user_id, username, name, description, author, version, category, model, skills, tags, features, files, memory, is_public, is_private) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, user_id||'anonymous', username, name, description, author, version||'1.0.0', category, model||null, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_public?1:0, is_private?1:0]);
       return { success: true, id, isUpdate: false, version: version||'1.0.0' };
     }
   },
