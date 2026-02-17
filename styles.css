@@ -932,11 +932,23 @@ body {
   margin-bottom: 24px;
 }
 
-/* Copy Grid */
+/* Copy Grid - Horizontal scroll */
 .copy-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.copy-grid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.copy-grid::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
 }
 
 .copy-card {
@@ -946,6 +958,8 @@ body {
   padding: 20px;
   cursor: pointer;
   transition: all 0.2s;
+  min-width: 280px;
+  flex-shrink: 0;
 }
 
 .copy-card:hover {

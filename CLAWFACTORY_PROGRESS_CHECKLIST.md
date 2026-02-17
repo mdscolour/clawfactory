@@ -449,10 +449,10 @@ Last Updated: 2026-02-15 03:45
 - [x] Shows current version before upload ✅
 - [x] Passes version to backend API ✅
 
-### 🔜 Pending npm publish
-- [ ] Run: `npm login` then `npm publish`
-- Version: 1.0.13 (ready to publish)
-- OTP (2FA) required
+### ✅ npm Published (2026-02-17 17:02)
+- [x] npm publish completed successfully ✅
+- [x] Version: 1.0.13 published to registry
+- [x] Package available at: https://www.npmjs.com/package/clawfactory
 
 ### ✅ Copy Detail Modal (2026-02-17 05:15)
 - [x] Added openCopyModal() function ✅
@@ -502,6 +502,26 @@ GET /api/version                  # Check current version
   - POST /api/copies/:id/comment - Add comment
   - GET /api/copies/:id/comments - Get comments
   - GET /api/users/:userId/contributions - User's contributions
+
+### ⚠️ Railway Deployment Issue (2026-02-17 12:30)
+- [x] Identified issue: `/api/version` returns 404 on production ✅
+- [x] Root cause: Local repo is 4 commits ahead of origin/main ✅
+- [x] Fix: Push commits to GitHub (requires user action)
+- [x] Deployment verified: /api/version returns 200 ✅
+
+**API Status:**
+- /api/copies ✅ Working
+- /api/featured ✅ Working
+- /api/version ✅ Working (1.0.12)
+
+### ✅ Frontend Fixes (2026-02-17 17:04)
+- [x] Removed Sensitive Token UI from account page ✅
+- [x] Fixed loadAllCopies() to use API.getCopies() ✅
+- [x] Changed copy grid to horizontal scroll layout ✅
+
+### 🎉 npm Published (2026-02-17 17:02)
+- ✅ clawfactory@1.0.13 successfully published to npm
+- ✅ Available at: https://www.npmjs.com/package/clawfactory
 
 ### Note
 This is an autonomous work cycle. Working silently.

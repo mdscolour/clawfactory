@@ -145,18 +145,11 @@ function loadAccountByUsername(username) {
   
   // Get tokens from localStorage
   const accessToken = localStorage.getItem('clawfactory_token') || '';
-  const sensitiveToken = localStorage.getItem('clawfactory_sensitive_token') || '';
   
   if (accessToken) {
     document.getElementById('accessToken').textContent = accessToken;
   } else {
     document.getElementById('accessToken').textContent = 'Login to get token';
-  }
-  
-  if (sensitiveToken) {
-    document.getElementById('sensitiveToken').textContent = sensitiveToken;
-  } else {
-    document.getElementById('sensitiveToken').textContent = 'Login to get token';
   }
 }
 
@@ -369,26 +362,12 @@ async function loadAccount() {
   // Get Access Token (from localStorage or current user id)
   const accessToken = localStorage.getItem('clawfactory_token') || currentUser.id;
   document.getElementById('accessToken').textContent = accessToken;
-  
-  // Get or generate Sensitive Token
-  let sensitiveToken = localStorage.getItem('clawfactory_sensitive_token');
-  if (!sensitiveToken) {
-    sensitiveToken = 'sens_' + currentUser.id + '_' + Date.now().toString(36);
-    localStorage.setItem('clawfactory_sensitive_token', sensitiveToken);
-  }
-  document.getElementById('sensitiveToken').textContent = sensitiveToken;
 }
 
 function copyAccessToken() {
   const token = document.getElementById('accessToken').textContent;
   navigator.clipboard?.writeText(token);
   showNotification('Access Token copied!');
-}
-
-function copySensitiveToken() {
-  const token = document.getElementById('sensitiveToken').textContent;
-  navigator.clipboard?.writeText(token);
-  showNotification('Sensitive Token copied!');
 }
 
 function showNotification(msg) {
@@ -661,7 +640,7 @@ async function loadAllCopies() {
   if (!container) return;
   container.innerHTML = '<p>Loading...</p>';
   try {
-    const copies = await API.getAll();
+    const copies = await API.getCopies();
     if (!copies?.length) { container.innerHTML = '<p>No copies available.</p>'; return; }
     container.innerHTML = `<div class="copy-grid">${copies.map(c => renderCopyCard(c)).join('')}</div>`;
   } catch (err) {
