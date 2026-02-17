@@ -84,6 +84,7 @@ async function initDb() {
     author TEXT NOT NULL,
     version TEXT DEFAULT '1.0.0',
     category TEXT,
+    model TEXT,
     skills TEXT,
     tags TEXT,
     features TEXT,
@@ -97,6 +98,13 @@ async function initDb() {
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
   )`);
+
+  // Migration: add model column if not exists
+  try {
+    db.run(`ALTER TABLE copies ADD COLUMN model TEXT`);
+  } catch (e) {
+    // Column already exists
+  }
 
   db.run(`CREATE TABLE IF NOT EXISTS ratings (
     id TEXT PRIMARY KEY, copy_id TEXT NOT NULL, user_id TEXT, rating INTEGER NOT NULL,
