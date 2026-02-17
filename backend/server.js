@@ -302,7 +302,7 @@ const routes = {
       return { success: true, id, isUpdate: true, version: newVersion };
     } else {
       // Insert new
-      run(`INSERT INTO copies (id, user_id, username, name, description, author, version, category, model, skills, tags, features, files, memory, is_public, is_private) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      run(`INSERT INTO copies (id, user_id, username, name, description, author, version, category, model, skills, tags, features, files, memory, is_public, is_private) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [id, user_id||'anonymous', username, name, description, author, version||'1.0.0', category, model||null, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_public?1:0, is_private?1:0]);
       return { success: true, id, isUpdate: false, version: version||'1.0.0' };
     }
