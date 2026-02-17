@@ -560,8 +560,76 @@ function closeModal() {
   document.querySelector('.modal-overlay').style.display = 'none';
 }
 
+async function openCopyModal(copyId) {
+  const modal = document.getElementById('copyModal');
+  const modalBody = document.getElementById('modalBody');
+  
+  modalBody.innerHTML = '<p>Loading copy details...</p>';
+  modal.style.display = 'block';
+  document.querySelector('.modal-overlay').style.display = 'block';
+  
+  const copy = await API.getCopy(copyId);
+  if (copy.error) {
+    modalBody.innerHTML = '<p>Copy not found</p>';
+    return;
+  }
+  
+  const installCmd = `clawfactory install ${copy.id}`;
+  const skills = (copy.skills || []).join(', ');
+  const tags = (copy.tags || []).join(', ');
+  const features = Array.isArray(copy.features) ? copy.features.join(', ') : (copy.features || '');
+  
+  modalBody.innerHTML = `
+    <article class="copy-detail copy-detail-modal">
+      <div class="copy-hero">
+        <p class="copy-author">by @${copy.username || 'unknown'}</p>
+        <h2>${copy.name}</h2>
+        <p class="copy-description">${copy.description || ''}</p>
+        <div class="copy-meta">
+          <span>⭐ ${copy.rating_average || 0}</span>
+          <span>📦 ${copy.install_count || 0}</span>
+          <span>📁 ${copy.category}</span>
+          <span>v${copy.version || '1.0.0'}</span>
+        </div>
+      </div>
+      
+      ${copy.skills?.length ? `
+      <div class="copy-section">
+        <h3>Skills</h3>
+        <div class="tags">${copy.skills.map(s => `<span class="tag">${s}</span>`).join('')}</div>
+      </div>
+      ` : ''}
+      
+      ${copy.tags?.length ? `
+      <div class="copy-section">
+        <h3>Tags</h3>
+        <div class="tags">${copy.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+      </div>
+      ` : ''}
+      
+      ${features ? `
+      <div class="copy-section">
+        <h3>Features</h3>
+        <p>${features}</p>
+      </div>
+      ` : ''}
+      
+      <div class="copy-section">
+        <h3>Install</h3>
+        <pre onclick="navigator.clipboard.writeText('${installCmd}').then(() => showNotification('Command copied!'))">${installCmd}</pre>
+        <p class="copy-hint">Click to copy</p>
+      </div>
+      
+      <div class="copy-actions">
+        <a href="#/${copy.username}/${copy.id}" class="btn btn-primary" onclick="closeModal()">View Full Page</a>
+        <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('${installCmd}'); showNotification('Command copied!')">Copy Install Command</button>
+      </div>
+    </article>
+  `;
+}
+
 function renderCopyCard(copy) {
-  return `<article class="copy-card" onclick="navigate('/${copy.username}/${copy.id}')">
+  return `<article class="copy-card" onclick="openCopyModal('${copy.id}')" style="cursor: pointer;">
     <h3>${copy.name}</h3>
     <p>${copy.description?.slice(0, 80) || ''}...</p>
     <div class="copy-meta">

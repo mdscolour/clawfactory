@@ -449,7 +449,26 @@ Last Updated: 2026-02-15 03:45
 - [x] Shows current version before upload ✅
 - [x] Passes version to backend API ✅
 
-**Deploy Commands:**
+### 🔜 Pending npm publish
+- [ ] Run: `npm login` then `npm publish`
+- Version: 1.0.13 (ready to publish)
+- OTP (2FA) required
+
+### ✅ Copy Detail Modal (2026-02-17 05:15)
+- [x] Added openCopyModal() function ✅
+  - Fetches copy details from API
+  - Displays full copy info (skills, tags, features)
+  - Shows install command with copy-to-clipboard
+  - "View Full Page" and "Copy Install" buttons
+- [x] Modified renderCopyCard() to use modal ✅
+  - Click on copy card opens modal instead of navigating
+  - Full page still accessible via button
+- [x] Added CSS styles for modal copy detail ✅
+  - Hero section with author and meta
+  - Tags display with styling
+  - Action buttons with hover states
+
+### Deploy Commands:
 ```bash
 ./deploy-clean.sh --local          # Local dev server
 ./deploy-clean.sh --railway        # Railway with clean cache
