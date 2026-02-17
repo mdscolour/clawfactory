@@ -439,6 +439,16 @@ Last Updated: 2026-02-15 03:45
   - Enables runtime update checking
 - [x] Added .railway.json to .gitignore consideration
 
+### ✅ CLI Upload Version Selection (2026-02-17 04:58)
+- [x] Added version selection when updating copies ✅
+  - Choice 1: Patch bump (1.0.0 → 1.0.1)
+  - Choice 2: Minor bump (1.0.0 → 1.1.0)
+  - Choice 3: Major bump (1.0.0 → 2.0.0)
+  - Choice 4: Custom version
+  - Choice 5: Auto-detect (default behavior)
+- [x] Shows current version before upload ✅
+- [x] Passes version to backend API ✅
+
 **Deploy Commands:**
 ```bash
 ./deploy-clean.sh --local          # Local dev server

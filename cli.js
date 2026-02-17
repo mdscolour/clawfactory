@@ -179,6 +179,43 @@ async function upload() {
   // Ask for copy details (reuse existing values if updating)
   const existingCopy = myCopies.find(c => c.id === copyId);
 
+  // Version selection for updates
+  let version = null;
+  if (existingCopy) {
+    log(`\n📌 Current version: ${existingCopy.version}`, 'yellow');
+    log('Choose version bump:', 'cyan');
+    log('  1. Patch (1.0.0 → 1.0.1) - Bug fixes');
+    log('  2. Minor (1.0.0 → 1.1.0) - New features');
+    log('  3. Major (1.0.0 → 2.0.0) - Breaking changes');
+    log('  4. Custom version');
+    log('  5. Keep current (auto-detect)');
+    
+    const rlVersion = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const vChoice = await new Promise(r => rlVersion.question('\nVersion choice (1-5): ', r));
+    rlVersion.close();
+    
+    const parts = existingCopy.version.split('.').map(Number);
+    switch (vChoice) {
+      case '1': // patch
+        version = `${parts[0]}.${parts[1]}.${(parts[2] || 0) + 1}`;
+        break;
+      case '2': // minor
+        version = `${parts[0]}.${(parts[1] || 0) + 1}.${parts[2] || 0}`;
+        break;
+      case '3': // major
+        version = `${(parts[0] || 1) + 1}.${parts[1] || 0}.${parts[2] || 0}`;
+        break;
+      case '4': // custom
+        const rlCustom = readline.createInterface({ input: process.stdin, output: process.stdout });
+        version = await new Promise(r => rlCustom.question('Custom version (e.g., 1.5.0): ', r));
+        rlCustom.close();
+        break;
+      default:
+        version = null; // auto-detect by backend
+    }
+    log(`\n📦 Version: ${version || 'auto'}, copy: ${copyId}`, 'cyan');
+  }
+
   const rl2 = readline.createInterface({ input: process.stdin, output: process.stdout });
 
   const name = existingCopy?.name || await new Promise(r => rl.question('Description: ', r));
@@ -226,6 +263,7 @@ async function upload() {
       files: { 
         'SKILL.md': skillContent || `# ${name}\n\n${description}`
       },
+      version, // Include user-selected version (null = auto)
       is_private: isPrivate,
       user_id: user.id,
       username: user.username
