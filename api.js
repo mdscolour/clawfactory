@@ -52,7 +52,14 @@ const API = {
       }
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${endpoint}`);
+        // Try to parse error response from backend
+        const errorText = await response.text();
+        try {
+          const errorJson = JSON.parse(errorText);
+          return { error: errorJson.error || errorJson.message || `HTTP ${response.status}`, status: response.status };
+        } catch {
+          return { error: `HTTP ${response.status}`, status: response.status };
+        }
       }
 
       return await response.json();
@@ -105,6 +112,13 @@ const API = {
 
   async getMe() {
     return await this.request('/api/auth/me');
+  },
+
+  async revokeToken(username) {
+    return await this.request('/api/auth/revoke', {
+      method: 'POST',
+      body: JSON.stringify({ username })
+    });
   },
 
   // ========== USER API ==========

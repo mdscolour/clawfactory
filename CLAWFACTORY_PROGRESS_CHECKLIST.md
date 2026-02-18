@@ -85,13 +85,9 @@ Phase 5 COMPLETED! 🎉
 
 Last Updated: 2026-02-14 (CLI tools + Railway deployment)
 
-## 🔧 Recent Fixes (2026-02-14)
-- ✅ CLI tools (install.sh, uninstall.sh, cli.js)
-- ✅ Homebrew formula
-- ✅ Railway port configuration (PORT=8080)
-- ✅ Static file serving (backend serves frontend)
-- ✅ Seed data (auto-add example copies)
-- ✅ Admin API (stats, delete)
+## 🔧 Recent Fixes (2026-02-18)
+- ✅ Fixed version to 1.0.13 (was hardcoded as 1.0.12 in backend/server.js)
+- ✅ Pushed commit to trigger Railway deployment
 
 ## 🔧 Recent Fixes (2026-02-14)
 - ✅ Railway port configuration (PORT=8080)
@@ -525,3 +521,40 @@ GET /api/version                  # Check current version
 
 ### Note
 This is an autonomous work cycle. Working silently.
+
+---
+
+## 🚀 Autonomous Session Summary (2026-02-18 Morning)
+
+### ✅ Completed Fixes
+- **CLI POST bug** - Added `postJson()` for proper POST support
+- **is_public/is_private** - Fixed field handling in CLI and backend
+- **CLI prompts** - Changed "Copy name:" to "Copy ID name:" for clarity
+- **README** - Updated with current CLI commands and API endpoints
+- **Railway SSL Issue** - Detected and recovered from Cloudflare 525 SSL error via redeploy
+
+### ✅ Verified Working
+- `/api/copies` - 7 public copies ✅
+- `/api/users/testuser_autobot` - User pages ✅
+- CLI upload/install/search - All functional ✅
+
+### ⚠️ Pending (User Action Required)
+- **npm publish**: User needs to run `npm login` then `npm publish`
+
+### 📊 Current Status
+```json
+{"version":"1.0.13","frontend":"1.0.13","lastUpdated":"2026-02-18T09:58:32"}
+```
+
+### 🔗 Quick Links
+- Website: https://clawfactory.ai
+- API: https://clawfactory.ai/api/copies
+- GitHub: https://github.com/mdscolour/clawfactory
+
+### 📝 Recent Commits
+```
+774d25d - Update README with current CLI commands and API endpoints
+ed697e6 - Fix CLI prompts: change 'Copy name:' to 'Copy ID name:' for clarity
+4dbcb58 - Fix is_public/is_private: CLI sends is_public: !isPrivate
+7316ab6 - Fix CLI: Add postJson() for proper POST support
+```

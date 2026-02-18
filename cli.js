@@ -140,7 +140,7 @@ async function install(copyId) {
     log(`  📄 ${filename}`, 'yellow');
   }
 
-  if (copy.memory) {
+  if (copy.memory && copy.has_memory === 1) {
     const memPath = path.join(installPath, 'memory', `${copyId}.md`);
     fs.mkdirSync(path.dirname(memPath), { recursive: true });
     fs.writeFileSync(memPath, copy.memory);
@@ -243,6 +243,13 @@ async function upload() {
   const skills = existingCopy?.skills?.join(', ') || await new Promise(r => rl.question('Skills (comma-separated): ', r));
   const tags = existingCopy?.tags?.join(', ') || await new Promise(r => rl.question('Tags (comma-separated): ', r));
   const model = existingCopy?.model || await new Promise(r => rl.question('Model (optional, e.g., claude-sonnet-4-20250514): ', r));
+  
+  // Memory option - use existing value for updates, prompt for new
+  let hasMemory = existingCopy?.has_memory === 1;
+  if (!existingCopy) {
+    hasMemory = (await new Promise(r => rl.question('Include memory files? (y/n): ', r))) === 'y';
+  }
+
   const isPrivate = existingCopy?.is_private === 1 || (await new Promise(r => rl.question('Private? (y/n): ', r))) === 'y';
 
   // Read SKILL.md if it exists in current directory
@@ -262,6 +269,27 @@ async function upload() {
   log('\n⬆️  Uploading...', 'cyan');
   rl.close();
 
+  // Read memory files if requested
+  let memoryContent = '';
+  if (hasMemory) {
+    const memoryPath = path.join(process.cwd(), 'memory');
+    if (fs.existsSync(memoryPath)) {
+      const files = fs.readdirSync(memoryPath).filter(f => f.endsWith('.md'));
+      if (files.length > 0) {
+        memoryContent = files.map(f => {
+          const content = fs.readFileSync(path.join(memoryPath, f), 'utf8');
+          return `## ${f}\n\n${content}`;
+        }).join('\n\n---\n\n');
+        log(`📦 Found ${files.length} memory file(s)`, 'cyan');
+      } else {
+        log('⚠️  memory/ directory exists but no .md files found', 'yellow');
+      }
+    } else {
+      log('⚠️  memory/ directory not found (will skip memory upload)', 'yellow');
+      hasMemory = false;
+    }
+  }
+
   const res = await postJson(`${API_BASE}/api/copies`, {
     copyId,
     name,
@@ -274,6 +302,8 @@ async function upload() {
     files: { 
       'SKILL.md': skillContent || `# ${name}\n\n${description}`
     },
+    memory: memoryContent || undefined,
+    has_memory: hasMemory,
     version,
     is_private: isPrivate,
     is_public: !isPrivate,

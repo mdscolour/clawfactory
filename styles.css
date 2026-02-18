@@ -951,6 +951,38 @@ body {
   border-radius: 3px;
 }
 
+/* Vertical list layout for all copies page */
+.copy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.copy-list .copy-card {
+  min-width: unset;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Pagination for copies list */
+.copies-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 16px;
+}
+
+.copies-pagination button {
+  padding: 8px 16px;
+}
+
+.copies-pagination .page-info {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
 .copy-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border);

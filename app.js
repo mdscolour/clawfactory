@@ -370,6 +370,33 @@ function copyAccessToken() {
   showNotification('Access Token copied!');
 }
 
+async function revokeToken() {
+  if (!currentUser) {
+    showNotification('Please login first');
+    switchPage('login');
+    return;
+  }
+  
+  if (!confirm('Are you sure you want to revoke and regenerate your token? This will invalidate your current token.')) {
+    return;
+  }
+  
+  try {
+    const res = await API.revokeToken(currentUser.username);
+    if (res.success && res.token) {
+      localStorage.setItem('clawfactory_token', res.token);
+      API.setToken(res.token);
+      document.getElementById('accessToken').textContent = res.token;
+      showNotification('Token regenerated successfully!');
+    } else {
+      showNotification(res.error || 'Failed to revoke token');
+    }
+  } catch (err) {
+    console.error('[Revoke] Error:', err);
+    showNotification('Error revoking token');
+  }
+}
+
 function showNotification(msg) {
   const n = document.createElement('div');
   n.className = 'notification';
@@ -509,7 +536,8 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
     skills: document.getElementById('copySkills').value.split(',').map(s=>s.trim()).filter(Boolean),
     tags: document.getElementById('copyTags').value.split(',').map(t=>t.trim()).filter(Boolean),
     files: { 'SKILL.md': document.getElementById('copyName').value },
-    isPrivate: document.getElementById('copyPrivate').checked
+    isPrivate: document.getElementById('copyPrivate').checked,
+    hasMemory: document.getElementById('copyHasMemory').checked
   });
   if (copy.success) {
     showNotification(copy.isUpdate ? 'Copy updated!' : 'Copy created!');
@@ -607,8 +635,11 @@ async function openCopyModal(copyId) {
   `;
 }
 
-function renderCopyCard(copy) {
-  return `<article class="copy-card" onclick="openCopyModal('${copy.id}')" style="cursor: pointer;">
+function renderCopyCard(copy, directNavigate = false) {
+  const clickHandler = directNavigate 
+    ? `navigate('/${copy.username}/${copy.id}')` 
+    : `openCopyModal('${copy.id}')`;
+  return `<article class="copy-card" onclick="${clickHandler}" style="cursor: pointer;">
     <h3>${copy.name}</h3>
     <p>${copy.description?.slice(0, 80) || ''}...</p>
     <div class="copy-meta">
@@ -628,23 +659,95 @@ async function loadFeaturedCopies() {
     const copies = await API.getFeatured();
     console.log('[App] Featured copies:', copies);
     if (!copies?.length) { container.innerHTML = '<p>No featured copies yet.</p>'; return; }
-    container.innerHTML = `<div class="copy-grid">${copies.map(c => renderCopyCard(c)).join('')}</div>`;
+    // Show only top 5 most popular
+    const top5 = copies.slice(0, 5);
+    container.innerHTML = `<div class="copy-grid">${top5.map(c => renderCopyCard(c)).join('')}</div>`;
   } catch (err) {
     console.error('[App] Failed to load featured:', err);
     container.innerHTML = '<p>Failed to load copies.</p>';
   }
 }
 
+// Copies pagination & filter state
+let allCopiesData = [];
+let filteredCopiesData = [];
+let copiesPage = 1;
+const copiesPerPage = 10;
+
 async function loadAllCopies() {
   const container = document.getElementById('allCopies');
   if (!container) return;
   container.innerHTML = '<p>Loading...</p>';
   try {
-    const copies = await API.getCopies();
-    if (!copies?.length) { container.innerHTML = '<p>No copies available.</p>'; return; }
-    container.innerHTML = `<div class="copy-grid">${copies.map(c => renderCopyCard(c)).join('')}</div>`;
+    allCopiesData = await API.getCopies();
+    if (!allCopiesData?.length) { container.innerHTML = '<p>No copies available.</p>'; return; }
+    applyCopyFilterAndSort();
   } catch (err) {
     container.innerHTML = '<p>Failed to load copies.</p>';
+  }
+}
+
+function applyCopyFilterAndSort() {
+  const filter = document.getElementById('copyFilter')?.value || 'all';
+  const sort = document.getElementById('copySort')?.value || 'newest';
+  
+  // Filter
+  let filtered = allCopiesData;
+  if (filter === 'hasMemory') {
+    filtered = allCopiesData.filter(c => c.has_memory === 1);
+  } else if (filter === 'noMemory') {
+    filtered = allCopiesData.filter(c => c.has_memory !== 1);
+  }
+  
+  // Sort
+  filtered.sort((a, b) => {
+    switch (sort) {
+      case 'popular':
+        return (b.install_count || 0) - (a.install_count || 0);
+      case 'rating':
+        return (b.rating_average || 0) - (a.rating_average || 0);
+      case 'newest':
+      default:
+        return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+    }
+  });
+  
+  // Store filtered data and render
+  filteredCopiesData = filtered;
+  renderCopiesPage(1);
+}
+
+function applyCopyFilter() {
+  applyCopyFilterAndSort();
+}
+
+function applyCopySort() {
+  applyCopyFilterAndSort();
+}
+
+function renderCopiesPage(page) {
+  const container = document.getElementById('allCopies');
+  if (!container) return;
+  
+  copiesPage = page;
+  const data = filteredCopiesData.length > 0 ? filteredCopiesData : allCopiesData;
+  const start = (page - 1) * copiesPerPage;
+  const end = start + copiesPerPage;
+  const pageData = data.slice(start, end);
+  const totalPages = Math.ceil(data.length / copiesPerPage);
+  
+  // Render vertical list
+  container.innerHTML = `<div class="copy-list">${pageData.map(c => renderCopyCard(c, true)).join('')}</div>`;
+  
+  // Add pagination if needed
+  if (totalPages > 1) {
+    container.innerHTML += `
+      <div class="copies-pagination">
+        <button class="btn btn-secondary" onclick="renderCopiesPage(${page - 1})" ${page === 1 ? 'disabled' : ''}>← Prev</button>
+        <span class="page-info">Page ${page} of ${totalPages}</span>
+        <button class="btn btn-secondary" onclick="renderCopiesPage(${page + 1})" ${page === totalPages ? 'disabled' : ''}>Next →</button>
+      </div>
+    `;
   }
 }
 

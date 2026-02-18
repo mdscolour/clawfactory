@@ -106,6 +106,13 @@ async function initDb() {
     // Column already exists
   }
 
+  // Migration: add has_memory column if not exists
+  try {
+    db.run(`ALTER TABLE copies ADD COLUMN has_memory INTEGER DEFAULT 0`);
+  } catch (e) {
+    // Column already exists
+  }
+
   // Collaborative editing tables
   db.run(`CREATE TABLE IF NOT EXISTS contributors (
     id TEXT PRIMARY KEY,
@@ -284,7 +291,7 @@ const routes = {
 
   'GET /api/copies': () => {
     const copies = getAll('SELECT * FROM copies WHERE is_public = 1 ORDER BY rating_average DESC, install_count DESC');
-    return copies.map(c => ({ ...c, skills: parseJson(c.skills), tags: parseJson(c.tags) }));
+    return copies.map(c => ({ ...c, skills: parseJson(c.skills), tags: parseJson(c.tags), has_memory: c.has_memory }));
   },
 
   'GET /api/copies/:id': (req) => {
@@ -294,7 +301,7 @@ const routes = {
       const authHeader = req.headers.authorization;
       if (!authHeader || authHeader !== `Bearer ${copy.user_id}`) return { error: 'Private copy', status: 403 };
     }
-    return { ...copy, skills: parseJson(copy.skills), tags: parseJson(copy.tags), files: parseJson(copy.files), memory: copy.memory };
+    return { ...copy, skills: parseJson(copy.skills), tags: parseJson(copy.tags), files: parseJson(copy.files), memory: copy.memory, has_memory: copy.has_memory };
   },
 
   'GET /api/copies/:id/private': (req) => {
@@ -303,7 +310,7 @@ const routes = {
     if (!copy) return { error: 'Copy not found', status: 404 };
     // Only the owner can view private copies
     if (copy.is_private === 1 && copy.user_id !== user_id) return { error: 'Access denied', status: 403 };
-    return { ...copy, skills: parseJson(copy.skills), tags: parseJson(copy.tags), files: parseJson(copy.files), memory: copy.memory };
+    return { ...copy, skills: parseJson(copy.skills), tags: parseJson(copy.tags), files: parseJson(copy.files), memory: copy.memory, has_memory: copy.has_memory };
   },
 
   'GET /api/users/:username': (req) => {
@@ -332,7 +339,7 @@ const routes = {
   },
 
   'POST /api/copies': (req) => {
-    const { name, description, author, version, category, model, skills, tags, features, files, memory, user_id, username, is_public, is_private, copyId } = req.body;
+    const { name, description, author, version, category, model, skills, tags, features, files, memory, user_id, username, is_public, is_private, copyId, has_memory } = req.body;
     // Allow custom copyId or generate from name
     const id = copyId || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     const existing = getOne('SELECT * FROM copies WHERE id = ?', [id]);
@@ -356,13 +363,13 @@ const routes = {
         newVersion = `${parts[0]}.${parts[1]}.${patch + 1}`;
       }
       
-      run(`UPDATE copies SET name=?, description=?, author=?, version=?, category=?, model=?, skills=?, tags=?, features=?, files=?, memory=?, is_public=?, is_private=?, updated_at=datetime('now') WHERE id=?`,
-        [name, description, author, newVersion, category, model||null, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_public?1:0, is_private?1:0, id]);
+      run(`UPDATE copies SET name=?, description=?, author=?, version=?, category=?, model=?, skills=?, tags=?, features=?, files=?, memory=?, is_public=?, is_private=?, has_memory=?, updated_at=datetime('now') WHERE id=?`,
+        [name, description, author, newVersion, category, model||null, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_public?1:0, is_private?1:0, has_memory?1:0, id]);
       return { success: true, id, isUpdate: true, version: newVersion };
     } else {
       // Insert new
-      run(`INSERT INTO copies (id, user_id, username, name, description, author, version, category, model, skills, tags, features, files, memory, is_public, is_private) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, user_id||'anonymous', username, name, description, author, version||'1.0.0', category, model||null, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_public?1:0, is_private?1:0]);
+      run(`INSERT INTO copies (id, user_id, username, name, description, author, version, category, model, skills, tags, features, files, memory, is_public, is_private, has_memory) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, user_id||'anonymous', username, name, description, author, version||'1.0.0', category, model||null, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_public?1:0, is_private?1:0, has_memory?1:0]);
       return { success: true, id, isUpdate: false, version: version||'1.0.0' };
     }
   },
@@ -380,6 +387,15 @@ const routes = {
       return { success: true, user: { id, username, email }, token };
     } catch (err) { 
       console.error('[Register] Error:', err.message);
+      // Return more specific error message
+      if (err.message.includes('UNIQUE constraint failed')) {
+        if (err.message.includes('users.username')) {
+          return { error: '用户名已存在', status: 400 };
+        }
+        if (err.message.includes('users.email')) {
+          return { error: '邮箱已被注册', status: 400 };
+        }
+      }
       return { error: err.message, status: 400 }; 
     }
   },
@@ -400,7 +416,7 @@ const routes = {
     
     if (!user) {
       console.log('[Login] User not found');
-      return { error: 'Invalid username or password', status: 401, remaining: rateLimit.remaining };
+      return { error: '用户名或密码错误', status: 401, remaining: rateLimit.remaining };
     }
     
     const inputHash = hashPassword(password);
@@ -411,7 +427,7 @@ const routes = {
     
     if (user.password_hash && !verifyPassword(password, user.password_hash)) {
       console.log('[Login] Password mismatch');
-      return { error: 'Invalid username or password', status: 401, remaining: rateLimit.remaining };
+      return { error: '用户名或密码错误', status: 401, remaining: rateLimit.remaining };
     }
     
     // Success - reset failed attempts
@@ -430,6 +446,23 @@ const routes = {
       return { success: true, message: 'Rate limit cleared' };
     }
     return { error: 'Username required', status: 400 };
+  },
+
+  'POST /api/auth/revoke': (req) => {
+    const { username } = req.body;
+    if (!username) {
+      return { error: 'Username required', status: 400 };
+    }
+    
+    const user = getOne('SELECT * FROM users WHERE username = ?', [username]);
+    if (!user) {
+      return { error: 'User not found', status: 404 };
+    }
+    
+    // Generate new token
+    const newToken = 'clawfactory_' + generateId();
+    console.log('[Revoke] New token generated for:', username);
+    return { success: true, token: newToken };
   },
 
   'POST /api/auth/google': (req) => {

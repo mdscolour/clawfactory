@@ -22,6 +22,7 @@
         <a href="#page=copies" class="nav-link active" data-page="copies" onclick="navigate('page=copies'); return false;">Copies</a>
         <a href="#page=categories" class="nav-link" data-page="categories" onclick="navigate('page=categories'); return false;">Categories</a>
         <a href="#page=search" class="nav-link" data-page="search" onclick="navigate('page=search'); return false;">Search</a>
+        <a href="#page=upload" class="nav-link" data-page="upload" onclick="navigate('page=upload'); return false;">Upload</a>
         <a href="#page=my-copies" class="nav-link" data-page="my-copies" onclick="navigate('page=my-copies'); return false;">My Copies</a>
       </nav>
       <div class="auth-section">
@@ -68,6 +69,19 @@
         <h2>🔥 Popular Copies</h2>
         <div class="copy-grid" id="featuredCopies"></div>
       </section>
+
+      <section class="install-help-section" style="background: var(--bg-secondary); border-radius: 12px; padding: 24px; margin: 24px 0; border: 1px solid var(--border-color);">
+        <h3 style="margin:0 0 16px 0;">Haven't installed OpenClaw yet?</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 16px;">Run these commands to get started:</p>
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; font-family: 'SF Mono', Monaco, Consolas, monospace; font-size: 13px; line-height: 1.8;">
+          <div style="margin-bottom: 8px; color: var(--text-secondary);"># macOS / Linux</div>
+          <div style="color: var(--primary);">curl -fsSL https://openclaw.ai/install.sh | bash</div>
+          <div style="margin-top: 12px; margin-bottom: 8px; color: var(--text-secondary);"># Install clawfactory</div>
+          <div style="color: var(--primary);">npm install -g clawfactory</div>
+          <div style="margin-top: 12px; margin-bottom: 8px; color: var(--text-secondary);"># View hot copies</div>
+          <div style="color: var(--primary);">clawfactory hottest</div>
+        </div>
+      </section>
     </div>
 
     <!-- Copies Page -->
@@ -76,7 +90,22 @@
         <h1>All Copies</h1>
         <div class="category-chips" id="categoryChips"></div>
       </section>
-      <div class="copy-grid" id="allCopies"></div>
+      
+      <!-- Filter & Sort -->
+      <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+        <select id="copyFilter" onchange="applyCopyFilter()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text);">
+          <option value="all">All</option>
+          <option value="hasMemory">有 Memory</option>
+          <option value="noMemory">无 Memory</option>
+        </select>
+        <select id="copySort" onchange="applyCopySort()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text);">
+          <option value="newest">最新 (Newest)</option>
+          <option value="popular">热门 (Most Installs)</option>
+          <option value="rating">评分 (Rating)</option>
+        </select>
+      </div>
+      
+      <div class="copy-list" id="allCopies"></div>
     </div>
 
     <!-- Categories Page -->
@@ -146,6 +175,11 @@
         <div class="form-group">
           <label>Tags (comma-separated)</label>
           <input type="text" id="copyTags" placeholder="e.g., crypto, automation">
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="copyHasMemory"> Include memory files (from workspace/memory/)
+          </label>
         </div>
         <div class="form-group">
           <label>
@@ -251,7 +285,10 @@
           <h3 style="margin:0 0 8px 0;color: var(--primary);">🔑 Access Token</h3>
           <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">Use for: uploading public copies, browsing, installing</p>
           <code id="accessToken" style="display: block; background: var(--bg-primary); padding: 14px; border-radius: 8px; word-break: break-all; margin-bottom: 12px; font-family: 'SF Mono', Monaco, Consolas, monospace; color: var(--primary);"></code>
-          <button class="btn btn-secondary" onclick="copyAccessToken()">📋 Copy</button>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" onclick="copyAccessToken()">📋 Copy</button>
+            <button class="btn btn-danger" onclick="revokeToken()" id="revokeTokenBtn">🔄 Revoke & Regenerate</button>
+          </div>
         </div>
 
         <div style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color);">
