@@ -49,6 +49,28 @@ async function fetchJson(url, opts = {}) {
   });
 }
 
+async function postJson(url, body, headers = {}) {
+  return new Promise((resolve, reject) => {
+    const urlObj = new URL(url);
+    const req = (urlObj.protocol === 'https:' ? https : http).request({
+      hostname: urlObj.hostname,
+      port: urlObj.port || (urlObj.protocol === 'https:' ? 443 : 80),
+      path: urlObj.pathname + urlObj.search,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers
+      }
+    }, res => {
+      let d = ''; res.on('data', c => d += c); res.on('end', () => {
+        try { resolve(JSON.parse(d)); } catch { resolve(d); }
+      });
+    }).on('error', reject);
+    req.write(JSON.stringify(body));
+    req.end();
+  });
+}
+
 async function search(query) {
   if (!query) error('Usage: clawfactory search <query>');
   log(`🔍 Searching for "${query}"...`, 'cyan');
@@ -126,7 +148,7 @@ async function install(copyId) {
   }
 
   // Track install
-  await fetchJson(`${API_BASE}/api/copies/${copyId}/install`, { method: 'POST' });
+  await postJson(`${API_BASE}/api/copies/${copyId}/install`, {});
 
   log(`\n✅ Installed to ${installPath}`, 'green');
   log(`\nTo use this copy, copy these files to your OpenClaw workspace.`, 'cyan');
@@ -240,30 +262,23 @@ async function upload() {
   log('\n⬆️  Uploading...', 'cyan');
   rl.close();
 
-  const res = await fetchJson(`${API_BASE}/api/copies`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
+  const res = await postJson(`${API_BASE}/api/copies`, {
+    copyId,
+    name,
+    description,
+    author,
+    category,
+    model,
+    skills: skills.split(',').map(s => s.trim()).filter(Boolean),
+    tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+    files: { 
+      'SKILL.md': skillContent || `# ${name}\n\n${description}`
     },
-    body: JSON.stringify({
-      copyId,
-      name,
-      description,
-      author,
-      category,
-      model,
-      skills: skills.split(',').map(s => s.trim()).filter(Boolean),
-      tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-      files: { 
-        'SKILL.md': skillContent || `# ${name}\n\n${description}`
-      },
-      version, // Include user-selected version (null = auto)
-      is_private: isPrivate,
-      user_id: user.id,
-      username: user.username
-    })
-  });
+    version,
+    is_private: isPrivate,
+    user_id: user.id,
+    username: user.username
+  }, { Authorization: `Bearer ${token}` });
 
   if (res.error) error(res.error);
   log(`\n✅ ${res.isUpdate ? `Updated to v${res.version}` : 'Created'} copy: ${res.id}`, 'green');
@@ -318,25 +333,20 @@ async function secretUpload(copyId) {
 
   const id = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
-  const res = await fetchJson(`${API_BASE}/api/copies`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({
-      copyId: id,
-      name,
-      description,
-      author: user.username,
-      category,
-      skills: skills.split(',').map(s => s.trim()).filter(Boolean),
-      files: { 'SKILL.md': skillContent || `# ${name}\n\n${description}` },
-      has_secrets: true,
-      encrypted_secrets: encryptedData,
-      is_private: false,
-      user_id: user.id,
-      username: user.username
+  const res = await postJson(`${API_BASE}/api/copies`, {
+    copyId: id,
+    name,
+    description,
+    author: user.username,
+    category,
+    skills: skills.split(',').map(s => s.trim()).filter(Boolean),
+    files: { 'SKILL.md': skillContent || `# ${name}\n\n${description}` },
+    has_secrets: true,
+    encrypted_secrets: encryptedData,
+    is_private: false,
+    user_id: user.id,
+    username: user.username
+  }, { Authorization: `Bearer ${token}` });
     })
   });
 
@@ -387,7 +397,7 @@ async function secretInstall(copyId, secretKey) {
     }
 
     // Track install
-    await fetchJson(`${API_BASE}/api/copies/${copyId}/install`, { method: 'POST' });
+    await postJson(`${API_BASE}/api/copies/${copyId}/install`, {});
 
     log(`\n✅ Installed to ${path.join(DATA_DIR, 'copies', copyId)}`, 'green');
     log('\n🔐 Secrets decrypted and saved to .env', 'green');
