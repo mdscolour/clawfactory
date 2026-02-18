@@ -136,42 +136,66 @@ async function install(copyId) {
 
   // Try to find OpenClaw workspace
   const openclawWorkspace = path.join(process.env.HOME, '.openclaw', 'workspace');
-  const useOpenclaw = fs.existsSync(openclawWorkspace);
-  const installPath = useOpenclaw 
-    ? openclawWorkspace 
-    : path.join(DATA_DIR, 'copies', copyId);
-    
-  fs.mkdirSync(installPath, { recursive: true });
-
-  const files = copy.files ? (typeof copy.files === 'string' ? JSON.parse(copy.files) : copy.files) : {};
-  for (const [filename, content] of Object.entries(files || {})) {
-    fs.writeFileSync(path.join(installPath, filename), content);
-    log(`  📄 ${filename}`, 'yellow');
+  const workspaceExists = fs.existsSync(openclawWorkspace);
+  
+  if (!workspaceExists) {
+    error('OpenClaw workspace not found. Please install OpenClaw first.');
   }
+  
+  // Backup current workspace
+  const backupPath = path.join(DATA_DIR, 'workspace-backup', `${copyId}-${Date.now()}`);
+  fs.mkdirSync(path.dirname(backupPath), { recursive: true });
+  fs.cpSync(openclawWorkspace, backupPath, { recursive: true });
+  log(`  📦 Backed up current workspace to ${backupPath}`, 'yellow');
 
-  if (copy.memory && copy.has_memory === 1) {
-    const memPath = path.join(installPath, 'memory', `${copyId}.md`);
-    fs.mkdirSync(path.dirname(memPath), { recursive: true });
-    fs.writeFileSync(memPath, copy.memory);
-    log(`  🧠 memory/${copyId}.md`, 'yellow');
-  }
-
-  // Track install
-  await postJson(`${API_BASE}/api/copies/${copyId}/install`, {});
-
-  log(`\n✅ Installed to ${installPath}`, 'green');
-  if (!useOpenclaw) {
-    log(`\nNote: OpenClaw workspace not found. Files saved to ${installPath}`, 'yellow');
-  }
+  // Download and extract workspace tarball
+  log(`  ⬇️  Downloading workspace...`, 'cyan');
+  
+  const tarballUrl = `${API_BASE}/api/copies/${copyId}/tarball`;
+  const tarballPath = path.join(DATA_DIR, 'temp', `${copyId}.tar.gz`);
+  fs.mkdirSync(path.dirname(tarballPath), { recursive: true });
+  
+  // Download tarball
+  await new Promise((resolve, reject) => {
+    const file = fs.createWriteStream(tarballPath);
+    https.get(tarballUrl, (res) => {
+      if (res.statusCode !== 200) {
+        error(`Failed to download: HTTP ${res.statusCode}`);
+      }
+      res.pipe(file);
+      file.on('finish', () => {
+        file.close();
+        resolve();
+      });
+    }).on('error', reject);
+  });
+  
+  // Extract to workspace
+  log(`  📦 Extracting workspace...`, 'cyan');
+  fs.rmSync(openclawWorkspace, { recursive: true, force: true });
+  execSync(`tar -xzf ${tarballPath} -C ${path.dirname(openclawWorkspace)}`);
+  
+  // Cleanup
+  fs.rmSync(tarballPath);
+  
+  log(`\n✅ Installed "${copyId}" to ${openclawWorkspace}`, 'green');
+  log(`\n💡 Your previous workspace has been backed up to:`, 'cyan');
+  log(`   ${backupPath}`, 'yellow');
 }
 
 async function upload() {
   const token = getToken();
   if (!token) error('Please provide token: clawfactory upload TOKEN=<your-token> or set CLAWFACTORY_TOKEN');
 
-  log('\n📤 Upload a copy\n', 'cyan');
+  log('\n📤 Upload workspace\n', 'cyan');
 
-  // Get user info first
+  // Find OpenClaw workspace
+  const workspaceDir = path.join(process.env.HOME, '.openclaw', 'workspace');
+  if (!fs.existsSync(workspaceDir)) {
+    error('OpenClaw workspace not found. Are you in the right directory?');
+  }
+
+  // Get user info
   const userRes = await fetchJson(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
   if (userRes.error) error('Session expired or invalid token.');
   const user = userRes.user;
@@ -192,17 +216,20 @@ async function upload() {
     });
     log(`  ${myCopies.length + 1}. Create new copy`, 'cyan');
 
-    const choice = await new Promise(r => rl.question('\nChoose (number) or press Enter for new: ', r));
+    const choice = (await new Promise(r => rl.question('\nChoose (number) or press Enter for new: ', r))).trim();
+    rl.close();
 
     const num = parseInt(choice);
     if (num >= 1 && num <= myCopies.length) {
       copyId = myCopies[num - 1].id;
       log(`\n📝 Updating: ${copyId}`, 'cyan');
     }
+  } else {
+    rl.close();
   }
 
   if (!copyId) {
-    const name = await new Promise(r => rl.question('Copy ID name: ', r));
+    const name = (await new Promise(r => rl.question('Copy ID name: ', r))).trim();
     copyId = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     log(`\n📦 Creating new copy: ${copyId}`, 'cyan');
   }
@@ -227,77 +254,41 @@ async function upload() {
     
     const parts = existingCopy.version.split('.').map(Number);
     switch (vChoice) {
-      case '1': // patch
-        version = `${parts[0]}.${parts[1]}.${(parts[2] || 0) + 1}`;
-        break;
-      case '2': // minor
-        version = `${parts[0]}.${(parts[1] || 0) + 1}.${parts[2] || 0}`;
-        break;
-      case '3': // major
-        version = `${(parts[0] || 1) + 1}.${parts[1] || 0}.${parts[2] || 0}`;
-        break;
-      case '4': // custom
+      case '1': version = `${parts[0]}.${parts[1]}.${(parts[2] || 0) + 1}`; break;
+      case '2': version = `${parts[0]}.${(parts[1] || 0) + 1}.${parts[2] || 0}`; break;
+      case '3': version = `${(parts[0] || 1) + 1}.${parts[1] || 0}.${parts[2] || 0}`; break;
+      case '4': 
         const rlCustom = readline.createInterface({ input: process.stdin, output: process.stdout });
-        version = await new Promise(r => rlCustom.question('Custom version (e.g., 1.5.0): ', r));
+        version = (await new Promise(r => rlCustom.question('Custom version (e.g., 1.5.0): ', r))).trim();
         rlCustom.close();
         break;
-      default:
-        version = null; // auto-detect by backend
+      default: version = null;
     }
     log(`\n📦 Version: ${version || 'auto'}, copy: ${copyId}`, 'cyan');
   }
 
-  const name = existingCopy?.name || await new Promise(r => rl.question('Display name: ', r));
-  const description = existingCopy?.description || await new Promise(r => rl.question('Description: ', r));
-  // Author is automatically set to the logged-in user's username
+  const name = existingCopy?.name || (await new Promise(r => rl.question('Display name: ', r))).trim();
+  const description = existingCopy?.description || (await new Promise(r => rl.question('Description: ', r))).trim();
   const author = user.username;
-  const category = existingCopy?.category || (await new Promise(r => rl.question('Category (financial/frontend-dev/backend-dev/pm/designer/marketing/secretary/video-maker/productivity/content/research/others/undefined): ', r))) || 'undefined';
-  
-  // Memory option - use existing value for updates, prompt for new
-  let hasMemory = existingCopy?.has_memory === 1;
-  if (!existingCopy) {
-    hasMemory = (await new Promise(r => rl.question('Include memory files? (y/n): ', r))) === 'y';
-  }
+  const category = existingCopy?.category || (await new Promise(r => rl.question('Category (financial/frontend-dev/backend-dev/pm/designer/marketing/secretary/video-maker/productivity/content/research/others/undefined): ', r))).trim() || 'undefined';
+  const isPrivate = existingCopy?.is_private === 1 || (await new Promise(r => rl.question('Private? (y/n): ', r))).trim().toLowerCase() === 'y';
 
-  const isPrivate = existingCopy?.is_private === 1 || (await new Promise(r => rl.question('Private? (y/n): ', r))) === 'y';
-
-  // Read SKILL.md if it exists in current directory
-  let skillContent = '';
-  if (fs.existsSync('SKILL.md')) {
-    const readSkill = await new Promise(r => rl.question('Found SKILL.md in current directory. Use it? (y/n): ', r));
-    if (readSkill.toLowerCase() === 'y') {
-      try {
-        skillContent = fs.readFileSync('SKILL.md', 'utf8');
-        log('📄 Using existing SKILL.md content', 'cyan');
-      } catch (e) {
-        log(`Could not read SKILL.md: ${e.message}`, 'yellow');
-      }
-    }
-  }
-
-  log('\n⬆️  Uploading...', 'cyan');
   rl.close();
 
-  // Read memory files if requested
-  let memoryContent = '';
-  if (hasMemory) {
-    const memoryPath = path.join(process.cwd(), 'memory');
-    if (fs.existsSync(memoryPath)) {
-      const files = fs.readdirSync(memoryPath).filter(f => f.endsWith('.md'));
-      if (files.length > 0) {
-        memoryContent = files.map(f => {
-          const content = fs.readFileSync(path.join(memoryPath, f), 'utf8');
-          return `## ${f}\n\n${content}`;
-        }).join('\n\n---\n\n');
-        log(`📦 Found ${files.length} memory file(s)`, 'cyan');
-      } else {
-        log('⚠️  memory/ directory exists but no .md files found', 'yellow');
-      }
-    } else {
-      log('⚠️  memory/ directory not found (will skip memory upload)', 'yellow');
-      hasMemory = false;
-    }
-  }
+  // Create tarball of workspace
+  log(`\n📦 Creating workspace archive...`, 'cyan');
+  const tarballPath = path.join(DATA_DIR, 'temp', `${copyId}.tar.gz`);
+  fs.mkdirSync(path.dirname(tarballPath), { recursive: true });
+  execSync(`tar -czf ${tarballPath} -C ${path.dirname(workspaceDir)} ${path.basename(workspaceDir)}`);
+  
+  const tarballSize = fs.statSync(tarballPath).size;
+  log(`  📦 Archive size: ${(tarballSize / 1024 / 1024).toFixed(2)} MB`, 'yellow');
+
+  // Upload tarball
+  log(`\n⬆️  Uploading workspace...`, 'cyan');
+  
+  const tarballContent = fs.readFileSync(tarballPath, 'binary');
+  const base64Content = Buffer.from(tarballContent, 'binary').toString('base64');
 
   const res = await postJson(`${API_BASE}/api/copies`, {
     copyId,
@@ -305,19 +296,17 @@ async function upload() {
     description,
     author,
     category,
-    skills: [],
-    tags: [],
-    files: { 
-      'SKILL.md': skillContent || `# ${name}\n\n${description}`
-    },
-    memory: memoryContent || undefined,
-    has_memory: hasMemory,
     version,
     is_private: isPrivate,
     is_public: !isPrivate,
+    workspace_tarball: base64Content,
+    tarball_size: tarballSize,
     user_id: user.id,
     username: user.username
   }, { Authorization: `Bearer ${token}` });
+
+  // Cleanup
+  fs.rmSync(tarballPath);
 
   if (res.error) error(res.error);
   log(`\n✅ ${res.isUpdate ? `Updated to v${res.version}` : 'Created'} copy: ${res.id}`, 'green');

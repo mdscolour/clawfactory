@@ -90,6 +90,8 @@ async function initDb() {
     features TEXT,
     files TEXT,
     memory TEXT,
+    tarball TEXT,
+    tarball_size INTEGER DEFAULT 0,
     rating_average REAL DEFAULT 0,
     rating_count INTEGER DEFAULT 0,
     install_count INTEGER DEFAULT 0,
@@ -102,15 +104,25 @@ async function initDb() {
   // Migration: add model column if not exists
   try {
     db.run(`ALTER TABLE copies ADD COLUMN model TEXT`);
-  } catch (e) {
-    // Column already exists
-  }
+  } catch (e) {}
 
   // Migration: add has_memory column if not exists
   try {
     db.run(`ALTER TABLE copies ADD COLUMN has_memory INTEGER DEFAULT 0`);
-  } catch (e) {
-    // Column already exists
+  } catch (e) {}
+
+  // Migration: add tarball columns if not exists
+  try {
+    db.run(`ALTER TABLE copies ADD COLUMN tarball TEXT`);
+  } catch (e) {}
+  try {
+    db.run(`ALTER TABLE copies ADD COLUMN tarball_size INTEGER DEFAULT 0`);
+  } catch (e) {}
+
+  // Create tarball storage directory
+  const TARBALL_DIR = path.join(DATA_DIR, 'tarballs');
+  if (!fs.existsSync(TARBALL_DIR)) {
+    fs.mkdirSync(TARBALL_DIR, { recursive: true });
   }
 
   // Collaborative editing tables
@@ -313,6 +325,30 @@ const routes = {
     return { ...copy, skills: parseJson(copy.skills), tags: parseJson(copy.tags), files: parseJson(copy.files), memory: copy.memory, has_memory: copy.has_memory };
   },
 
+  'GET /api/copies/:id/tarball': (req) => {
+    const copy = getOne('SELECT * FROM copies WHERE id = ?', [req.params.id]);
+    if (!copy) return { error: 'Copy not found', status: 404 };
+    
+    const tarballPath = copy.tarball;
+    if (!tarballPath || !fs.existsSync(tarballPath)) {
+      return { error: 'Tarball not found', status: 404 };
+    }
+    
+    console.log(`[Tarball] Serving: ${tarballPath}`);
+    
+    // Read and return the tarball
+    try {
+      const tarball = fs.readFileSync(tarballPath);
+      return {
+        tarball: tarball.toString('base64'),
+        size: tarball.length
+      };
+    } catch (e) {
+      console.error('[Tarball] Error reading tarball:', e.message);
+      return { error: 'Failed to read tarball', status: 500 };
+    }
+  },
+
   'GET /api/users/:username': (req) => {
     const user = getOne('SELECT id, username, email, created_at FROM users WHERE username = ?', [req.params.username]);
     if (!user) return { error: 'User not found', status: 404 };
@@ -339,37 +375,43 @@ const routes = {
   },
 
   'POST /api/copies': (req) => {
-    const { name, description, author, version, category, model, skills, tags, features, files, memory, user_id, username, is_public, is_private, copyId, has_memory } = req.body;
-    // Allow custom copyId or generate from name
+    const { name, description, author, version, category, model, skills, tags, features, files, memory, user_id, username, is_public, is_private, copyId, has_memory, workspace_tarball, tarball_size } = req.body;
     const id = copyId || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     const existing = getOne('SELECT * FROM copies WHERE id = ?', [id]);
 
+    // Handle tarball
+    let tarballPath = null;
+    if (workspace_tarball) {
+      tarballPath = path.join(DATA_DIR, 'tarballs', `${id}.tar.gz`);
+      try {
+        const tarballBuffer = Buffer.from(workspace_tarball, 'base64');
+        fs.writeFileSync(tarballPath, tarballBuffer);
+        console.log(`[Copies] Saved tarball to ${tarballPath} (${tarball_size} bytes)`);
+      } catch (e) {
+        console.error('[Copies] Failed to save tarball:', e.message);
+      }
+    }
+
     if (existing) {
-      // Update existing - auto increment version
       let newVersion = version || existing.version;
       if (version) {
-        // Parse version and increment patch
         const parts = version.split('.');
         if (parts.length >= 3) {
-          const patch = parseInt(parts[2]) || 0;
-          newVersion = `${parts[0]}.${parts[1]}.${patch + 1}`;
+          newVersion = `${parts[0]}.${parts[1]}.${parseInt(parts[2]) + 1}`;
         } else {
           newVersion = `${version}.1`;
         }
       } else {
-        // Auto increment patch version if not provided
         const parts = existing.version.split('.');
-        const patch = parseInt(parts[2]) || 0;
-        newVersion = `${parts[0]}.${parts[1]}.${patch + 1}`;
+        newVersion = `${parts[0]}.${parts[1]}.${(parseInt(parts[2]) || 0) + 1}`;
       }
       
-      run(`UPDATE copies SET name=?, description=?, author=?, version=?, category=?, model=?, skills=?, tags=?, features=?, files=?, memory=?, is_public=?, is_private=?, has_memory=?, updated_at=datetime('now') WHERE id=?`,
-        [name, description, author, newVersion, category, model||null, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_public?1:0, is_private?1:0, has_memory?1:0, id]);
+      run(`UPDATE copies SET name=?, description=?, author=?, version=?, category=?, model=?, skills=?, tags=?, features=?, files=?, memory=?, is_public=?, is_private=?, has_memory=?, tarball=?, tarball_size=?, updated_at=datetime('now') WHERE id=?`,
+        [name, description, author, newVersion, category, model||null, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_public?1:0, is_private?1:0, has_memory?1:0, tarballPath, tarball_size||0, id]);
       return { success: true, id, isUpdate: true, version: newVersion };
     } else {
-      // Insert new
-      run(`INSERT INTO copies (id, user_id, username, name, description, author, version, category, model, skills, tags, features, files, memory, is_public, is_private, has_memory) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, user_id||'anonymous', username, name, description, author, version||'1.0.0', category, model||null, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_public?1:0, is_private?1:0, has_memory?1:0]);
+      run(`INSERT INTO copies (id, user_id, username, name, description, author, version, category, model, skills, tags, features, files, memory, is_public, is_private, has_memory, tarball, tarball_size) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, user_id||'anonymous', username, name, description, author, version||'1.0.0', category, model||null, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_public?1:0, is_private?1:0, has_memory?1:0, tarballPath, tarball_size||0]);
       return { success: true, id, isUpdate: false, version: version||'1.0.0' };
     }
   },
