@@ -283,7 +283,7 @@ async function upload() {
     // Only accept single digit 1-5
     const vChoice = vChoiceRaw.length === 1 && vChoiceRaw >= '1' && vChoiceRaw <= '5' ? vChoiceRaw : '5';
     
-    const parts = existingCopy.version.split('.');
+    const parts = existingCopy.version.split('.').map(Number);
     switch (vChoice) {
       case '1': version = `${parts[0]}.${parts[1]}.${(parts[2] || 0) + 1}`; break;
       case '2': version = `${parts[0]}.${(parts[1] || 0) + 1}.${parts[2] || 0}`; break;
