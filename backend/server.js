@@ -119,6 +119,16 @@ async function initDb() {
     db.run(`ALTER TABLE copies ADD COLUMN tarball_size INTEGER DEFAULT 0`);
   } catch (e) {}
 
+  // Verify columns exist, add if missing
+  const cols = db.exec("SELECT sql FROM sqlite_master WHERE type='table' AND name='copies'");
+  const createSql = cols[0]?.values[0]?.[0] || '';
+  if (!createSql.includes('tarball')) {
+    try { db.run(`ALTER TABLE copies ADD COLUMN tarball TEXT`); } catch (e) {}
+  }
+  if (!createSql.includes('tarball_size')) {
+    try { db.run(`ALTER TABLE copies ADD COLUMN tarball_size INTEGER DEFAULT 0`); } catch (e) {}
+  }
+
   // Create tarball storage directory
   const TARBALL_DIR = path.join(DATA_DIR, 'tarballs');
   if (!fs.existsSync(TARBALL_DIR)) {
