@@ -281,9 +281,15 @@ async function showUserCopyPage(username, copySlug) {
           <select id="editCategory">${categoryOptions}</select>
         </div>
         <div class="form-group">
-          <label>
-            <input type="checkbox" id="editHasMemory" ${copy.has_memory ? 'checked' : ''}> Include memory files
-          </label>
+          <label style="margin-bottom: 8px;">Memory Files</label>
+          <div style="display: flex; gap: 16px;">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="radio" name="editHasMemory" value="true" ${copy.has_memory ? 'checked' : ''}> Include
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="radio" name="editHasMemory" value="false" ${!copy.has_memory ? 'checked' : ''}> Not Include
+            </label>
+          </div>
         </div>
         <div class="form-group">
           <label>
@@ -315,7 +321,8 @@ async function updateCopySettings() {
   if (!currentUser || !window.currentCopy) return;
   
   const category = document.getElementById('editCategory').value;
-  const hasMemory = document.getElementById('editHasMemory').checked;
+  const hasMemoryRadio = document.querySelector('input[name="editHasMemory"]:checked');
+  const hasMemory = hasMemoryRadio?.value === 'true';
   const isPrivate = document.getElementById('editPrivate').checked;
   
   // Note: Full update requires CLI, this just updates metadata
@@ -588,6 +595,10 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!currentUser) { showNotification('Please login first'); switchPage('login'); return; }
   
+  // Get memory radio value
+  const hasMemoryRadio = document.querySelector('input[name="copyHasMemory"]:checked');
+  const hasMemory = hasMemoryRadio?.value === 'true';
+  
   // Show loading state
   const submitBtn = document.querySelector('#uploadForm button[type="submit"]');
   const originalText = submitBtn.textContent;
@@ -603,7 +614,7 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
     tags: [],
     files: { 'SKILL.md': document.getElementById('copyName').value },
     isPrivate: document.getElementById('copyPrivate').checked,
-    hasMemory: document.getElementById('copyHasMemory').checked
+    hasMemory: hasMemory
   });
   
   if (copy.success) {
