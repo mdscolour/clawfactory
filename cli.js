@@ -174,8 +174,6 @@ async function upload() {
     log(`\n📦 Creating new copy: ${copyId}`, 'cyan');
   }
 
-  rl.close();
-
   // Ask for copy details (reuse existing values if updating)
   const existingCopy = myCopies.find(c => c.id === copyId);
 
@@ -216,9 +214,7 @@ async function upload() {
     log(`\n📦 Version: ${version || 'auto'}, copy: ${copyId}`, 'cyan');
   }
 
-  const rl2 = readline.createInterface({ input: process.stdin, output: process.stdout });
-
-  const name = existingCopy?.name || await new Promise(r => rl.question('Description: ', r));
+  const name = existingCopy?.name || await new Promise(r => rl.question('Copy name: ', r));
   const description = existingCopy?.description || await new Promise(r => rl.question('Description: ', r));
   const author = existingCopy?.author || await new Promise(r => rl.question('Author: ', r));
   const category = existingCopy?.category || await new Promise(r => rl.question('Category (financial/frontend-dev/backend-dev/pm/designer/marketing/secretary/video-maker/productivity/content/research/others): ', r)) || 'others';
@@ -227,12 +223,10 @@ async function upload() {
   const model = existingCopy?.model || await new Promise(r => rl.question('Model (optional, e.g., claude-sonnet-4-20250514): ', r));
   const isPrivate = existingCopy?.is_private === 1 || (await new Promise(r => rl.question('Private? (y/n): ', r))) === 'y';
 
-  rl2.close();
-
   // Read SKILL.md if it exists in current directory
   let skillContent = '';
   if (fs.existsSync('SKILL.md')) {
-    const readSkill = await new Promise(r => rl2.question('Found SKILL.md in current directory. Use it? (y/n): ', r));
+    const readSkill = await new Promise(r => rl.question('Found SKILL.md in current directory. Use it? (y/n): ', r));
     if (readSkill.toLowerCase() === 'y') {
       try {
         skillContent = fs.readFileSync('SKILL.md', 'utf8');
@@ -244,6 +238,7 @@ async function upload() {
   }
 
   log('\n⬆️  Uploading...', 'cyan');
+  rl.close();
 
   const res = await fetchJson(`${API_BASE}/api/copies`, {
     method: 'POST',
