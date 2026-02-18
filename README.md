@@ -44,19 +44,53 @@ Visit [clawfactory.ai](https://clawfactory.ai)
 # Via npm (recommended)
 npm install -g clawfactory
 
-# Or via curl
-curl -sL https://raw.githubusercontent.com/mdscolour/clawfactory/main/install.sh | bash
-
 # Commands
-clawfactory list           # List all copies
-clawfactory search <query> # Search copies
-clawfactory install <id>   # Install a copy
-clawfactory copy <id>      # Alias for install
-clawfactory hottest        # Install top-rated copy
-clawfactory publish [dir]  # Publish local directory (reads SKILL.md, SOUL.md, AGENTS.md)
-clawfactory login          # Login to upload
-clawfactory upload         # Interactive upload
+clawfactory search <query>  # Search copies
+clawfactory install <id>    # Install a copy
+clawfactory copy <id>       # Alias for install
+clawfactory hottest          # Install top-rated copy
+clawfactory mine            # List your copies
+clawfactory mine --private  # List your private copies
+clawfactory upload          # Upload a copy (requires token)
+clawfactory secret upload   # Upload with .env secrets
+clawfactory secret install <id> <key>  # Install encrypted copy
 ```
+
+### Authentication (Token-Based)
+
+Get your token from [clawfactory.ai](https://clawfactory.ai):
+
+```bash
+# Option 1: Set environment variable
+export CLAWFACTORY_TOKEN=your-token-here
+
+# Option 2: Save to file
+echo your-token-here > ~/.clawfactory/token
+
+# Option 3: Pass token directly
+clawfactory upload TOKEN=your-token-here
+```
+
+### Upload a Copy
+
+```bash
+# Interactive upload
+clawfactory upload TOKEN=your-token
+
+# Or with token saved
+clawfactory upload
+
+# You'll be prompted for:
+# - Copy ID name (auto-generated from display name)
+# - Display name
+# - Description
+# - Author
+# - Category (financial/frontend-dev/backend-dev/pm/...)
+# - Skills (comma-separated)
+# - Tags (comma-separated)
+# - Model (optional)
+# - Private? (y/n)
+# - Version (auto or custom)
 
 ### Local Development
 
@@ -75,16 +109,42 @@ python3 -m http.server 8080
 ## API Endpoints
 
 ```bash
-GET  /api/copies              # List all public copies
-GET  /api/copies/:id          # Get copy details
-GET  /api/search?q=...        # Search copies
-GET  /api/categories          # List categories
-GET  /api/featured            # Featured copies
-GET  /api/users/:username     # User profile
-GET  /api/users/:username/:copySlug  # User copy page
-POST /api/auth/register       # Register
-POST /api/auth/login          # Login
-POST /api/copies             # Create/update copy
+# Copies
+GET  /api/copies                    # List all public copies
+GET  /api/copies/:id                # Get copy details
+GET  /api/featured                  # Featured copies
+GET  /api/search?q=...              # Search copies
+GET  /api/categories                # List categories
+GET  /api/recommendations           # AI-powered recommendations
+
+# Users
+GET  /api/users/:username           # User profile with copies
+GET  /api/users/:username/:copySlug # User copy page
+GET  /api/auth/me                   # Current user info (requires auth)
+
+# Authentication
+POST /api/auth/register             # Register
+POST /api/auth/login               # Login
+
+# Copy Operations (require auth token)
+POST /api/copies                   # Create/update copy
+POST /api/copies/:id/install       # Track installation
+POST /api/copies/:id/rate          # Rate a copy
+
+# Collaborative Features
+GET  /api/copies/:id/contributors  # List contributors
+GET  /api/copies/:id/changes       # Change history
+POST /api/copies/:id/change        # Record a change
+POST /api/copies/:id/comment       # Add comment
+GET  /api/copies/:id/comments       # Get comments
+```
+
+### API Authentication
+
+Include token in Authorization header:
+
+```bash
+curl -H "Authorization: Bearer your-token" https://clawfactory.ai/api/auth/me
 ```
 
 ## Copy Structure
