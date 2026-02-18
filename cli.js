@@ -217,18 +217,13 @@ async function upload() {
     log(`  ${myCopies.length + 1}. Create new copy`, 'cyan');
 
     const choice = (await new Promise(r => rl.question('\nChoose (number) or press Enter for new: ', r))).trim();
-    rl.close();
 
     const num = parseInt(choice);
     if (num >= 1 && num <= myCopies.length) {
       copyId = myCopies[num - 1].id;
       log(`\n📝 Updating: ${copyId}`, 'cyan');
     }
-  } else {
-    rl.close();
-  }
-
-  if (!copyId) {
+  } else if (!copyId) {
     const name = (await new Promise(r => rl.question('Copy ID name: ', r))).trim();
     copyId = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     log(`\n📦 Creating new copy: ${copyId}`, 'cyan');
@@ -274,6 +269,7 @@ async function upload() {
   const isPrivate = existingCopy?.is_private === 1 || (await new Promise(r => rl.question('Private? (y/n): ', r))).trim().toLowerCase() === 'y';
 
   rl.close();
+  rl2.close();
 
   // Create tarball of workspace
   log(`\n📦 Creating workspace archive...`, 'cyan');
