@@ -276,6 +276,7 @@ async function upload() {
     },
     version,
     is_private: isPrivate,
+    is_public: !isPrivate,
     user_id: user.id,
     username: user.username
   }, { Authorization: `Bearer ${token}` });

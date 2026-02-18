@@ -356,8 +356,8 @@ const routes = {
         newVersion = `${parts[0]}.${parts[1]}.${patch + 1}`;
       }
       
-      run(`UPDATE copies SET name=?, description=?, author=?, version=?, category=?, model=?, skills=?, tags=?, features=?, files=?, memory=?, is_private=?, updated_at=datetime('now') WHERE id=?`,
-        [name, description, author, newVersion, category, model||null, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_private?1:0, id]);
+      run(`UPDATE copies SET name=?, description=?, author=?, version=?, category=?, model=?, skills=?, tags=?, features=?, files=?, memory=?, is_public=?, is_private=?, updated_at=datetime('now') WHERE id=?`,
+        [name, description, author, newVersion, category, model||null, JSON.stringify(skills||[]), JSON.stringify(tags||[]), JSON.stringify(features||[]), JSON.stringify(files||{}), memory||null, is_public?1:0, is_private?1:0, id]);
       return { success: true, id, isUpdate: true, version: newVersion };
     } else {
       // Insert new
