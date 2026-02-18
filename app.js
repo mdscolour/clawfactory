@@ -175,21 +175,20 @@ function goBack() {
     handleRoute();
     return;
   }
-  if (document.referrer && document.referrer.includes(window.location.host)) {
-    window.history.back();
-    return;
-  }
-  const currentHash = window.location.hash.slice(1) || '/';
-  const parts = currentHash.split('/').filter(Boolean);
-  if (currentHash.startsWith('page=')) {
-    navigate('/');
-  } else if (parts.length >= 2) {
-    navigate(`/${parts[0]}`);
-  } else if (parts.length === 1 && parts[0]) {
-    navigate('/');
+  // Fallback: go to home
+  navigate('/');
+}
+
+function navigate(route) {
+  if (route === '/') {
+    // Special case for home - just change hash to empty
+    window.location.hash = '';
+  } else if (route.startsWith('/')) {
+    history.pushState({}, '', route);
   } else {
-    navigate('/');
+    window.location.hash = route;
   }
+  handleRoute();
 }
 
 async function showUserPage(username) {
@@ -215,7 +214,12 @@ async function showUserPage(username) {
 }
 
 async function showUserCopyPage(username, copySlug) {
-  pageHistory.push(window.location.pathname || window.location.hash.slice(1));
+  // Save current location for back navigation
+  const currentHash = window.location.hash.slice(1) || window.location.pathname;
+  if (currentHash && currentHash !== `/${username}/${copySlug}`) {
+    pageHistory.push(currentHash);
+  }
+  
   const copy = await API.getUserCopy(username, copySlug);
   if (copy.error) {
     showNotification('Copy not found');
