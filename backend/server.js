@@ -416,7 +416,7 @@ const routes = {
     
     if (!user) {
       console.log('[Login] User not found');
-      return { error: '用户名或密码错误', status: 401, remaining: rateLimit.remaining };
+      return { error: 'Invalid username or password', status: 401, remaining: rateLimit.remaining };
     }
     
     const inputHash = hashPassword(password);
@@ -427,7 +427,7 @@ const routes = {
     
     if (user.password_hash && !verifyPassword(password, user.password_hash)) {
       console.log('[Login] Password mismatch');
-      return { error: '用户名或密码错误', status: 401, remaining: rateLimit.remaining };
+      return { error: 'Invalid username or password', status: 401, remaining: rateLimit.remaining };
     }
     
     // Success - reset failed attempts
