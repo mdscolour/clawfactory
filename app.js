@@ -223,9 +223,6 @@ async function showUserCopyPage(username, copySlug) {
     return;
   }
   
-  // Store current copy for editing
-  window.currentCopy = copy;
-  
   document.querySelectorAll('[id$="Page"]').forEach(p => p.style.display = 'none');
   document.getElementById('userCopyPage').style.display = 'block';
   document.getElementById('userCopyTitle').textContent = copy.name;
@@ -233,29 +230,6 @@ async function showUserCopyPage(username, copySlug) {
   const installCmd = `clawfactory install ${copy.id}`;
   const skills = (copy.skills || []).join(', ');
   const files = Object.keys(copy.files || {});
-  const isOwner = currentUser && currentUser.username === username;
-  
-  // Category options
-  const categories = [
-    { value: 'undefined', label: '📦 Undefined' },
-    { value: 'financial', label: '💰 Financial' },
-    { value: 'frontend-dev', label: '🎨 Frontend Dev' },
-    { value: 'backend-dev', label: '⚙️ Backend Dev' },
-    { value: 'fullstack-dev', label: '🔄 Fullstack Dev' },
-    { value: 'pm', label: '📋 PM' },
-    { value: 'designer', label: '🎨 Designer' },
-    { value: 'marketing', label: '📢 Marketing' },
-    { value: 'secretary', label: '👩💼 Secretary' },
-    { value: 'video-maker', label: '🎬 Video Maker' },
-    { value: 'productivity', label: '🚀 Productivity' },
-    { value: 'content', label: '✍️ Content' },
-    { value: 'research', label: '🔬 Research' },
-    { value: 'others', label: '📦 Others' }
-  ];
-  
-  const categoryOptions = categories.map(c => 
-    `<option value="${c.value}" ${copy.category === c.value ? 'selected' : ''}>${c.label}</option>`
-  ).join('');
   
   document.getElementById('userCopyDetail').innerHTML = `
     <article class="copy-detail copy-detail-page">
@@ -273,33 +247,6 @@ async function showUserCopyPage(username, copySlug) {
         </div>
       </div>
       
-      ${isOwner ? `
-      <div class="copy-settings" style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; margin: 20px 0;">
-        <h3 style="margin:0 0 16px 0;">Settings</h3>
-        <div class="form-group">
-          <label>Category</label>
-          <select id="editCategory">${categoryOptions}</select>
-        </div>
-        <div class="form-group">
-          <label style="margin-bottom: 8px;">Memory Files</label>
-          <div style="display: flex; gap: 16px;">
-            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-              <input type="radio" name="editHasMemory" value="true" ${copy.has_memory ? 'checked' : ''}> Include
-            </label>
-            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-              <input type="radio" name="editHasMemory" value="false" ${!copy.has_memory ? 'checked' : ''}> Not Include
-            </label>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>
-            <input type="checkbox" id="editPrivate" ${copy.is_private ? 'checked' : ''}> Private copy (owner only)
-          </label>
-        </div>
-        <button class="btn btn-primary" onclick="updateCopySettings()">Save Settings</button>
-      </div>
-      ` : ''}
-      
       <div class="install-panel">
         <h3>Install</h3>
         <div class="install-command-box">
@@ -315,18 +262,6 @@ async function showUserCopyPage(username, copySlug) {
       <p style="color: var(--text-muted); font-size: 13px; margin-top: 12px;">Use CLI to update content: <code>clawfactory upload TOKEN=&lt;your-token&gt;</code></p>
     </article>
   `;
-}
-
-async function updateCopySettings() {
-  if (!currentUser || !window.currentCopy) return;
-  
-  const category = document.getElementById('editCategory').value;
-  const hasMemoryRadio = document.querySelector('input[name="editHasMemory"]:checked');
-  const hasMemory = hasMemoryRadio?.value === 'true';
-  const isPrivate = document.getElementById('editPrivate').checked;
-  
-  // Note: Full update requires CLI, this just updates metadata
-  showNotification('Settings updated! Use CLI to upload new content.');
 }
 
 async function checkAuth() {

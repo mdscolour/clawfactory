@@ -1383,26 +1383,6 @@ body {
   margin-bottom: 12px;
 }
 
-.copy-settings {
-  border: 1px solid var(--border-color);
-}
-
-.copy-settings .form-group {
-  margin-bottom: 16px;
-}
-
-.copy-settings label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-}
-
-.copy-settings select {
-  width: 100%;
-  max-width: 300px;
-}
-
 /* Back Link */
 .back-link {
   color: var(--text-secondary);
