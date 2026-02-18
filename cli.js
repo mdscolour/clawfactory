@@ -288,11 +288,7 @@ async function upload() {
       case '1': version = `${parts[0]}.${parts[1]}.${(parts[2] || 0) + 1}`; break;
       case '2': version = `${parts[0]}.${(parts[1] || 0) + 1}.${parts[2] || 0}`; break;
       case '3': version = `${(parts[0] || 1) + 1}.${parts[1] || 0}.${parts[2] || 0}`; break;
-      case '4': 
-        const rlCustom = readline.createInterface({ input: process.stdin, output: process.stdout });
-        version = (await new Promise(r => rlCustom.question('Custom version (e.g., 1.5.0): ', r))).trim();
-        rlCustom.close();
-        break;
+      case '4': version = null; break;  // Custom version removed - use auto-detect
       default: version = null;
     }
     log(`\n📦 Version: ${version || 'auto'}, copy: ${copyId}`, 'cyan');
@@ -305,7 +301,6 @@ async function upload() {
   const isPrivate = existingCopy?.is_private === 1 || (await new Promise(r => rl.question('Private? (y/n): ', r))).trim().toLowerCase() === 'y';
 
   rl.close();
-  rl2.close();
 
   // Create tarball of workspace
   log(`\n📦 Creating workspace archive...`, 'cyan');
