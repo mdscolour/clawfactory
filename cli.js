@@ -236,7 +236,7 @@ async function upload() {
     log(`\n📦 Version: ${version || 'auto'}, copy: ${copyId}`, 'cyan');
   }
 
-  const name = existingCopy?.name || await new Promise(r => rl.question('Copy name: ', r));
+  const name = existingCopy?.name || await new Promise(r => rl.question('Display name: ', r));
   const description = existingCopy?.description || await new Promise(r => rl.question('Description: ', r));
   const author = existingCopy?.author || await new Promise(r => rl.question('Author: ', r));
   const category = existingCopy?.category || await new Promise(r => rl.question('Category (financial/frontend-dev/backend-dev/pm/designer/marketing/secretary/video-maker/productivity/content/research/others): ', r)) || 'others';
