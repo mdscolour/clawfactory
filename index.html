@@ -143,12 +143,14 @@
         </div>
         <div class="form-group">
           <label style="margin-bottom: 8px;">Memory Files</label>
-          <div style="display: flex; gap: 16px;">
-            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-              <input type="radio" name="copyHasMemory" value="true"> Include
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="copyHasMemory" value="true">
+              <span class="radio-label">Include</span>
             </label>
-            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-              <input type="radio" name="copyHasMemory" value="false" checked> Not Include
+            <label class="radio-option">
+              <input type="radio" name="copyHasMemory" value="false" checked>
+              <span class="radio-label">Not Include</span>
             </label>
           </div>
         </div>

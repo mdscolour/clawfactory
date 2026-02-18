@@ -1383,6 +1383,38 @@ body {
   margin-bottom: 12px;
 }
 
+.radio-group {
+  display: flex;
+  gap: 12px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.radio-option:hover {
+  border-color: var(--primary);
+}
+
+.radio-option input[type="radio"] {
+  accent-color: var(--primary);
+  width: 16px;
+  height: 16px;
+}
+
+.radio-option input[type="radio"]:checked + .radio-label {
+  color: var(--primary);
+  font-weight: 600;
+}
+
 /* Back Link */
 .back-link {
   color: var(--text-secondary);
