@@ -175,20 +175,21 @@ function goBack() {
     handleRoute();
     return;
   }
-  // Fallback: go to home
-  navigate('/');
-}
-
-function navigate(route) {
-  if (route === '/') {
-    // Special case for home - just change hash to empty
-    window.location.hash = '';
-  } else if (route.startsWith('/')) {
-    history.pushState({}, '', route);
-  } else {
-    window.location.hash = route;
+  if (document.referrer && document.referrer.includes(window.location.host)) {
+    window.history.back();
+    return;
   }
-  handleRoute();
+  const currentHash = window.location.hash.slice(1) || '/';
+  const parts = currentHash.split('/').filter(Boolean);
+  if (currentHash.startsWith('page=')) {
+    navigate('/');
+  } else if (parts.length >= 2) {
+    navigate(`/${parts[0]}`);
+  } else if (parts.length === 1 && parts[0]) {
+    navigate('/');
+  } else {
+    navigate('/');
+  }
 }
 
 async function showUserPage(username) {
@@ -214,12 +215,7 @@ async function showUserPage(username) {
 }
 
 async function showUserCopyPage(username, copySlug) {
-  // Save current location for back navigation
-  const currentHash = window.location.hash.slice(1) || window.location.pathname;
-  if (currentHash && currentHash !== `/${username}/${copySlug}`) {
-    pageHistory.push(currentHash);
-  }
-  
+  pageHistory.push(window.location.pathname || window.location.hash.slice(1));
   const copy = await API.getUserCopy(username, copySlug);
   if (copy.error) {
     showNotification('Copy not found');
