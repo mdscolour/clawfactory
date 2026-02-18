@@ -1267,46 +1267,6 @@ body {
   margin-top: 4px;
 }
 
-/* Copy Modal Detail */
-.copy-detail-modal {
-  padding: 0;
-}
-
-.copy-detail-modal .copy-hero {
-  padding: 20px 20px 16px;
-  border-bottom: 1px solid var(--border);
-}
-
-.copy-detail-modal .copy-section {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
-}
-
-.copy-detail-modal .copy-section:last-of-type {
-  border-bottom: none;
-}
-
-.copy-detail-modal .tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.copy-detail-modal .tag {
-  background: var(--bg-secondary);
-  padding: 4px 10px;
-  border-radius: 16px;
-  font-size: 0.8rem;
-}
-
-.copy-detail-modal .copy-actions {
-  padding: 16px 20px;
-  background: var(--bg-secondary);
-  display: flex;
-  gap: 12px;
-  margin-top: 0;
-}
-
 /* Auth Section */
 .auth-section {
   display: flex;
