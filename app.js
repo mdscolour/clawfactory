@@ -530,8 +530,8 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
   const copy = await API.createCopy({
     name: document.getElementById('copyName').value,
     description: document.getElementById('copyDescription').value,
-    author: document.getElementById('copyAuthor').value,
-    category: document.getElementById('copyCategory').value,
+    author: currentUser.username,
+    category: document.getElementById('copyCategory').value || 'undefined',
     model: document.getElementById('copyModel').value,
     skills: document.getElementById('copySkills').value.split(',').map(s=>s.trim()).filter(Boolean),
     tags: document.getElementById('copyTags').value.split(',').map(t=>t.trim()).filter(Boolean),

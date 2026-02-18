@@ -142,17 +142,14 @@
           <textarea id="copyDescription" required placeholder="Brief description..."></textarea>
         </div>
         <div class="form-group">
-          <label>Author *</label>
-          <input type="text" id="copyAuthor" required placeholder="Your name">
-        </div>
-        <div class="form-group">
-          <label>Model (optional)</label>
-          <input type="text" id="copyModel" placeholder="e.g., claude-sonnet-4-20250514">
-          <small style="color: var(--text-muted);">Model settings are NOT copied. Use <code>openclaw config</code> to configure manually.</small>
+          <label>
+            <input type="checkbox" id="copyHasMemory"> Include memory files (from workspace/memory/)
+          </label>
         </div>
         <div class="form-group">
           <label>Category</label>
           <select id="copyCategory">
+            <option value="undefined">📦 Undefined</option>
             <option value="financial">💰 Financial</option>
             <option value="frontend-dev">🎨 Frontend Dev</option>
             <option value="backend-dev">⚙️ Backend Dev</option>
@@ -169,17 +166,17 @@
           </select>
         </div>
         <div class="form-group">
+          <label>Model (optional)</label>
+          <input type="text" id="copyModel" placeholder="e.g., claude-sonnet-4-20250514">
+          <small style="color: var(--text-muted);">Model settings are NOT copied. Use <code>openclaw config</code> to configure manually.</small>
+        </div>
+        <div class="form-group">
           <label>Skills (comma-separated)</label>
           <input type="text" id="copySkills" placeholder="e.g., trading, monitoring">
         </div>
         <div class="form-group">
           <label>Tags (comma-separated)</label>
           <input type="text" id="copyTags" placeholder="e.g., crypto, automation">
-        </div>
-        <div class="form-group">
-          <label>
-            <input type="checkbox" id="copyHasMemory"> Include memory files (from workspace/memory/)
-          </label>
         </div>
         <div class="form-group">
           <label>
