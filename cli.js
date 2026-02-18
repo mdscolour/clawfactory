@@ -347,8 +347,6 @@ async function secretUpload(copyId) {
     user_id: user.id,
     username: user.username
   }, { Authorization: `Bearer ${token}` });
-    })
-  });
 
   if (res.error) error(res.error);
 
