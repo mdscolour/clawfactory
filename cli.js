@@ -277,10 +277,13 @@ async function upload() {
     log('  5. Keep current (auto-detect)');
     
     const rlVersion = readline.createInterface({ input: process.stdin, output: process.stdout });
-    const vChoice = (await new Promise(r => rlVersion.question('\nVersion choice (1-5): ', r))).trim();
+    const vChoiceRaw = (await new Promise(r => rlVersion.question('\nVersion choice (1-5): ', r))).trim();
     rlVersion.close();
     
-    const parts = existingCopy.version.split('.').map(Number);
+    // Only accept single digit 1-5
+    const vChoice = vChoiceRaw.length === 1 && vChoiceRaw >= '1' && vChoiceRaw <= '5' ? vChoiceRaw : '5';
+    
+    const parts = existingCopy.version.split('.');
     switch (vChoice) {
       case '1': version = `${parts[0]}.${parts[1]}.${(parts[2] || 0) + 1}`; break;
       case '2': version = `${parts[0]}.${(parts[1] || 0) + 1}.${parts[2] || 0}`; break;
