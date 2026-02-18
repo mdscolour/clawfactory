@@ -134,7 +134,13 @@ async function install(copyId) {
   const copy = await fetchJson(`${API_BASE}/api/copies/${copyId}`);
   if (copy.error) error(`Copy not found: ${copyId}`);
 
-  const installPath = path.join(DATA_DIR, 'copies', copyId);
+  // Try to find OpenClaw workspace
+  const openclawWorkspace = path.join(process.env.HOME, '.openclaw', 'workspace');
+  const useOpenclaw = fs.existsSync(openclawWorkspace);
+  const installPath = useOpenclaw 
+    ? openclawWorkspace 
+    : path.join(DATA_DIR, 'copies', copyId);
+    
   fs.mkdirSync(installPath, { recursive: true });
 
   const files = copy.files ? (typeof copy.files === 'string' ? JSON.parse(copy.files) : copy.files) : {};
@@ -154,7 +160,9 @@ async function install(copyId) {
   await postJson(`${API_BASE}/api/copies/${copyId}/install`, {});
 
   log(`\n✅ Installed to ${installPath}`, 'green');
-  log(`\nTo use this copy, copy these files to your OpenClaw workspace.`, 'cyan');
+  if (!useOpenclaw) {
+    log(`\nNote: OpenClaw workspace not found. Files saved to ${installPath}`, 'yellow');
+  }
 }
 
 async function upload() {
