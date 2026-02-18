@@ -278,6 +278,7 @@ function updateAuthUI() {
   const loginLink = document.getElementById('loginLink');
   const registerLink = document.getElementById('registerLink');
   const accountLink = document.getElementById('accountLink');
+  const privateUploadLink = document.getElementById('privateUploadLink');
   const logoutBtn = document.getElementById('logoutBtn');
   const userDisplay = document.getElementById('userDisplay');
 
@@ -285,12 +286,14 @@ function updateAuthUI() {
     loginLink.style.display = 'none';
     registerLink.style.display = 'none';
     accountLink.style.display = 'inline';
+    privateUploadLink.style.display = 'inline';
     logoutBtn.style.display = 'inline-block';
     userDisplay.style.display = 'none';
   } else {
     loginLink.style.display = 'inline';
     registerLink.style.display = 'inline';
     accountLink.style.display = 'none';
+    privateUploadLink.style.display = 'none';
     logoutBtn.style.display = 'none';
     userDisplay.style.display = 'none';
   }
@@ -325,7 +328,7 @@ function copyInstallCommand(copyId) {
   showNotification('Command copied!');
 }
 
-const pages = ['home', 'copies', 'categories', 'search', 'upload', 'login', 'register', 'account', 'my-copies'];
+const pages = ['home', 'copies', 'categories', 'search', 'upload', 'private-upload', 'login', 'register', 'account', 'my-copies'];
 
 function switchPage(page) {
   pages.forEach(p => {
@@ -549,6 +552,46 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
     tags: [],
     files: { 'SKILL.md': document.getElementById('copyName').value },
     isPrivate: document.getElementById('copyPrivate').checked,
+    hasMemory: hasMemory
+  });
+  
+  if (copy.success) {
+    showNotification('Created! Now use CLI to upload content: clawfactory upload TOKEN=<your-token>');
+    
+    // Navigate to the copy page after a short delay
+    setTimeout(() => {
+      navigate(`/${currentUser.username}/${copy.id}`);
+    }, 2000);
+  } else {
+    showNotification(copy.error || 'Create failed');
+    submitBtn.textContent = originalText;
+    submitBtn.disabled = false;
+  }
+});
+
+document.getElementById('privateUploadForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!currentUser) { showNotification('Please login first'); switchPage('login'); return; }
+  
+  // Get memory radio value
+  const hasMemoryRadio = document.querySelector('input[name="privateCopyHasMemory"]:checked');
+  const hasMemory = hasMemoryRadio?.value === 'true';
+  
+  // Show loading state
+  const submitBtn = document.querySelector('#privateUploadForm button[type="submit"]');
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = 'Creating...';
+  submitBtn.disabled = true;
+  
+  const copy = await API.createCopy({
+    name: document.getElementById('privateCopyName').value,
+    description: document.getElementById('privateCopyDescription').value,
+    author: currentUser.username,
+    category: document.getElementById('privateCopyCategory').value || 'undefined',
+    skills: [],
+    tags: [],
+    files: { 'SKILL.md': document.getElementById('privateCopyName').value },
+    isPrivate: document.getElementById('privateCopyPrivate').checked || true,
     hasMemory: hasMemory
   });
   

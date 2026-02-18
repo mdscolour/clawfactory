@@ -26,6 +26,7 @@
         <a href="#page=my-copies" class="nav-link" data-page="my-copies" onclick="navigate('page=my-copies'); return false;">My Copies</a>
       </nav>
       <div class="auth-section">
+        <a href="#page=private-upload" class="nav-link" data-page="private-upload" id="privateUploadLink" onclick="navigate('page=private-upload'); return false;" style="display:none;">Private Upload</a>
         <a href="#" id="accountLink" onclick="navigateAccount(); return false;" style="display:none;">Account</a>
         <button onclick="logout()" id="logoutBtn" style="display:none;" class="btn btn-secondary">Logout</button>
         <a href="#page=login" class="nav-link" data-page="login" id="loginLink" onclick="navigate('page=login'); return false;">Login</a>
@@ -176,6 +177,62 @@
         <div class="form-group">
           <label>
             <input type="checkbox" id="copyPrivate"> Private copy (owner only)
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary">Create</button>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: 12px;">Use CLI to upload content: <code>clawfactory upload TOKEN=&lt;your-token&gt;</code></p>
+      </form>
+    </div>
+
+    <!-- Private Upload Page -->
+    <div id="privateUploadPage" style="display:none;">
+      <section class="page-header">
+        <h1>Private Upload</h1>
+      </section>
+      <form id="privateUploadForm" class="upload-form">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" id="privateCopyName" required placeholder="e.g., Polymarket Trader">
+        </div>
+        <div class="form-group">
+          <label>Description *</label>
+          <textarea id="privateCopyDescription" required placeholder="Brief description..."></textarea>
+        </div>
+        <div class="form-group">
+          <label style="margin-bottom: 8px;">Memory Files</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="privateCopyHasMemory" value="true">
+              <span class="radio-label">Include</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="privateCopyHasMemory" value="false" checked>
+              <span class="radio-label">Not Include</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="privateCopyCategory">
+            <option value="undefined">📦 Undefined</option>
+            <option value="financial">💰 Financial</option>
+            <option value="frontend-dev">🎨 Frontend Dev</option>
+            <option value="backend-dev">⚙️ Backend Dev</option>
+            <option value="fullstack-dev">🔄 Fullstack Dev</option>
+            <option value="pm">📋 PM</option>
+            <option value="designer">🎨 Designer</option>
+            <option value="marketing">📢 Marketing</option>
+            <option value="secretary">👩💼 Secretary</option>
+            <option value="video-maker">🎬 Video Maker</option>
+            <option value="productivity">🚀 Productivity</option>
+            <option value="content">✍️ Content</option>
+            <option value="research">🔬 Research</option>
+            <option value="others">📦 Others</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="privateCopyPrivate" checked> Private copy (owner only)
           </label>
         </div>
         <button type="submit" class="btn btn-primary">Create</button>
