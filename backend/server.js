@@ -393,15 +393,9 @@ const routes = {
     }
 
     if (existing) {
-      let newVersion = version || existing.version;
-      if (version) {
-        const parts = version.split('.');
-        if (parts.length >= 3) {
-          newVersion = `${parts[0]}.${parts[1]}.${parseInt(parts[2]) + 1}`;
-        } else {
-          newVersion = `${version}.1`;
-        }
-      } else {
+      // Use provided version, or auto-increment if not provided
+      let newVersion = version;
+      if (!version) {
         const parts = existing.version.split('.');
         newVersion = `${parts[0]}.${parts[1]}.${(parseInt(parts[2]) || 0) + 1}`;
       }
