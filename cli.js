@@ -155,12 +155,28 @@ async function install(copyId) {
   const tarballPath = path.join(DATA_DIR, 'temp', `${copyId}.tar.gz`);
   fs.mkdirSync(path.dirname(tarballPath), { recursive: true });
   
-  // Download tarball
+  // Download tarball with auth if available
+  const token = getToken();
+  const headers = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
   await new Promise((resolve, reject) => {
     const file = fs.createWriteStream(tarballPath);
-    https.get(tarballUrl, (res) => {
-      if (res.statusCode !== 200) {
-        error(`Failed to download: HTTP ${res.statusCode}`);
+    const req = https.get(tarballUrl, { headers }, (res) => {
+      if (res.statusCode === 404) {
+        file.close();
+        fs.rmSync(tarballPath);
+        reject(new Error('Tarball not found on server. Please upload the workspace first.'));
+      } else if (res.statusCode === 403) {
+        file.close();
+        fs.rmSync(tarballPath);
+        reject(new Error('Access denied. This copy may be private. Please login with TOKEN=...'));
+      } else if (res.statusCode !== 200) {
+        file.close();
+        fs.rmSync(tarballPath);
+        reject(new Error(`Failed to download: HTTP ${res.statusCode}`));
       }
       res.pipe(file);
       file.on('finish', () => {
@@ -170,8 +186,16 @@ async function install(copyId) {
     }).on('error', reject);
   });
   
-  // Extract to workspace
   log(`  📦 Extracting workspace...`, 'cyan');
+  
+  // Verify tarball
+  const stats = fs.statSync(tarballPath);
+  if (stats.size === 0) {
+    fs.rmSync(tarballPath);
+    error('Downloaded tarball is empty. Please upload the workspace first.');
+  }
+  
+  // Extract to workspace
   fs.rmSync(openclawWorkspace, { recursive: true, force: true });
   execSync(`tar -xzf ${tarballPath} -C ${path.dirname(openclawWorkspace)}`);
   
@@ -181,6 +205,15 @@ async function install(copyId) {
   log(`\n✅ Installed "${copyId}" to ${openclawWorkspace}`, 'green');
   log(`\n💡 Your previous workspace has been backed up to:`, 'cyan');
   log(`   ${backupPath}`, 'yellow');
+  
+  // Restart OpenClaw gateway to load new workspace
+  log(`\n🔄 Restarting OpenClaw gateway...`, 'cyan');
+  try {
+    execSync('openclaw gateway restart', { stdio: 'ignore' });
+    log(`  ✅ Gateway restarted`, 'green');
+  } catch (e) {
+    log(`  ⚠️  Could not restart gateway. Run 'openclaw gateway restart' manually.`, 'yellow');
+  }
 }
 
 async function upload() {
