@@ -191,7 +191,7 @@ async function upload() {
   }
 
   if (!copyId) {
-    const name = await new Promise(r => rl.question('Copy name: ', r));
+    const name = await new Promise(r => rl.question('Copy ID name: ', r));
     copyId = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     log(`\n📦 Creating new copy: ${copyId}`, 'cyan');
   }
@@ -326,7 +326,7 @@ async function secretUpload(copyId) {
   log('\n⬆️  Uploading with secrets...', 'cyan');
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  const name = await new Promise(r => rl.question('Copy name: ', r));
+  const name = await new Promise(r => rl.question('Copy ID name: ', r));
   const description = await new Promise(r => rl.question('Description: ', r));
   const category = await new Promise(r => rl.question('Category: ', r)) || 'others';
   const skills = await new Promise(r => rl.question('Skills (comma-separated): ', r));
