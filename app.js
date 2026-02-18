@@ -551,7 +551,7 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
     skills: [],
     tags: [],
     files: { 'SKILL.md': document.getElementById('copyName').value },
-    isPrivate: document.getElementById('copyPrivate').checked,
+    isPrivate: false,
     hasMemory: hasMemory
   });
   
