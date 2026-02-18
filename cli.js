@@ -511,6 +511,9 @@ ${COLORS.green}Website:${COLORS.reset}
 const cmd = args[0] || 'help';
 
 switch (cmd) {
+  case 'version': case '-v': case '--version': 
+    log(`clawfactory v${require('./package.json').version}`, 'green'); 
+    break;
   case 'install': case 'add': case 'i': install(args[1]); break;
   case 'copy': copy(args[1]); break;
   case 'hottest': hottest(); break;
