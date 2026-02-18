@@ -241,9 +241,6 @@ async function upload() {
   // Author is automatically set to the logged-in user's username
   const author = user.username;
   const category = existingCopy?.category || (await new Promise(r => rl.question('Category (financial/frontend-dev/backend-dev/pm/designer/marketing/secretary/video-maker/productivity/content/research/others/undefined): ', r))) || 'undefined';
-  const skills = existingCopy?.skills?.join(', ') || await new Promise(r => rl.question('Skills (comma-separated): ', r));
-  const tags = existingCopy?.tags?.join(', ') || await new Promise(r => rl.question('Tags (comma-separated): ', r));
-  const model = existingCopy?.model || await new Promise(r => rl.question('Model (optional, e.g., claude-sonnet-4-20250514): ', r));
   
   // Memory option - use existing value for updates, prompt for new
   let hasMemory = existingCopy?.has_memory === 1;
@@ -297,9 +294,8 @@ async function upload() {
     description,
     author,
     category,
-    model,
-    skills: skills.split(',').map(s => s.trim()).filter(Boolean),
-    tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+    skills: [],
+    tags: [],
     files: { 
       'SKILL.md': skillContent || `# ${name}\n\n${description}`
     },

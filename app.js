@@ -532,9 +532,8 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
     description: document.getElementById('copyDescription').value,
     author: currentUser.username,
     category: document.getElementById('copyCategory').value || 'undefined',
-    model: document.getElementById('copyModel').value,
-    skills: document.getElementById('copySkills').value.split(',').map(s=>s.trim()).filter(Boolean),
-    tags: document.getElementById('copyTags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    skills: [],
+    tags: [],
     files: { 'SKILL.md': document.getElementById('copyName').value },
     isPrivate: document.getElementById('copyPrivate').checked,
     hasMemory: document.getElementById('copyHasMemory').checked
@@ -543,7 +542,7 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
     showNotification(copy.isUpdate ? 'Copy updated!' : 'Copy created!');
     switchPage('home');
   } else {
-    showNotification(copy.error || 'Upload failed');
+    showNotification(copy.error || 'Create failed');
   }
 });
 
