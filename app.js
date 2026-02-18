@@ -527,6 +527,13 @@ function copyToken() {
 document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!currentUser) { showNotification('Please login first'); switchPage('login'); return; }
+  
+  // Show loading state
+  const submitBtn = document.querySelector('#uploadForm button[type="submit"]');
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = 'Creating...';
+  submitBtn.disabled = true;
+  
   const copy = await API.createCopy({
     name: document.getElementById('copyName').value,
     description: document.getElementById('copyDescription').value,
@@ -538,11 +545,18 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
     isPrivate: document.getElementById('copyPrivate').checked,
     hasMemory: document.getElementById('copyHasMemory').checked
   });
+  
   if (copy.success) {
-    showNotification(copy.isUpdate ? 'Copy updated!' : 'Copy created!');
-    switchPage('home');
+    showNotification('Created! Now use CLI to upload content: clawfactory upload TOKEN=<your-token>');
+    
+    // Navigate to the copy page after a short delay
+    setTimeout(() => {
+      navigate(`/${currentUser.username}/${copy.id}`);
+    }, 2000);
   } else {
     showNotification(copy.error || 'Create failed');
+    submitBtn.textContent = originalText;
+    submitBtn.disabled = false;
   }
 });
 
