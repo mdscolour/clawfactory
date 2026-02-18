@@ -269,10 +269,10 @@ const routes = {
   'GET /health': () => ({ status: 'ok', timestamp: new Date().toISOString() }),
 
   'GET /api/version': () => ({
-    version: '1.0.12',
+    version: '1.0.13',
     name: 'ClawFactory',
     api: '1.0.0',
-    frontend: '1.0.12',
+    frontend: '1.0.13',
     lastUpdated: new Date().toISOString()
   }),
 
