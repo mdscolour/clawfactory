@@ -214,7 +214,7 @@ async function upload() {
     log('  5. Keep current (auto-detect)');
     
     const rlVersion = readline.createInterface({ input: process.stdin, output: process.stdout });
-    const vChoice = await new Promise(r => rlVersion.question('\nVersion choice (1-5): ', r));
+    const vChoice = (await new Promise(r => rlVersion.question('\nVersion choice (1-5): ', r))).trim();
     rlVersion.close();
     
     const parts = existingCopy.version.split('.').map(Number);
