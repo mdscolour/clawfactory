@@ -15,7 +15,9 @@ async function init() {
 // Path-first routing (supports /username/slug), with hash fallback
 function getCurrentRoute() {
   const pathname = window.location.pathname || '/';
+  // If pathname is not root and not a file, use it
   if (pathname !== '/' && !pathname.includes('.')) return pathname;
+  // Otherwise use hash, default to home
   const hash = window.location.hash.slice(1) || '/';
   return hash;
 }
@@ -25,6 +27,12 @@ function handleRoute() {
   const normalized = route.replace(/^\/+/, '');
   const parts = normalized.split('/').filter(Boolean);
 
+  // Homepage - exact match or empty
+  if (route === '/' || normalized === '') {
+    switchPage('home');
+    return;
+  }
+  
   // /username/account - User account page (requires login)
   if (parts.length === 2 && parts[1] === 'account') {
     showUserAccountPage(parts[0]);
@@ -44,18 +52,12 @@ function handleRoute() {
   }
   
   // /username - User profile page
-  if (parts.length === 1 && !parts[0].startsWith('page') && route !== '/') {
+  if (parts.length === 1 && !parts[0].startsWith('page')) {
     showUserPage(parts[0]);
     return;
   }
   
-  // Homepage
-  if (route === '/') {
-    switchPage('home');
-    return;
-  }
-  
-  // Hash-based pages
+  // Hash-based pages (page=xxx)
   if (route.startsWith('page=')) {
     switchPage(route.replace('page=', ''));
   }
