@@ -16,6 +16,9 @@ const API_BASE = process.env.CLAWFACTORY_API || 'https://clawfactory.ai';
 const DATA_DIR = path.join(process.env.HOME, '.clawfactory');
 const TOKEN_FILE = path.join(DATA_DIR, 'token');
 
+// Get CLI arguments first - must be before functions that use it
+const args = process.argv.slice(2);
+
 const COLORS = {
   reset: '\033[0m', green: '\033[0;32m', yellow: '\033[1;33m', red: '\033[0;31m', blue: '\033[0;34m', cyan: '\033[0;36m'
 };
@@ -476,7 +479,6 @@ ${COLORS.green}Website:${COLORS.reset}
 `);
 }
 
-const args = process.argv.slice(2);
 const cmd = args[0] || 'help';
 
 switch (cmd) {
