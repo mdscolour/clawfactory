@@ -157,34 +157,45 @@ async function install(copyId) {
   
   // Download tarball with auth if available
   const token = getToken();
-  const headers = {};
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
   
-  await new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(tarballPath);
-    const req = https.get(tarballUrl, { headers }, (res) => {
-      if (res.statusCode === 404) {
-        file.close();
-        fs.rmSync(tarballPath);
-        reject(new Error('Tarball not found on server. Please upload the workspace first.'));
-      } else if (res.statusCode === 403) {
-        file.close();
-        fs.rmSync(tarballPath);
-        reject(new Error('Access denied. This copy may be private. Please login with TOKEN=...'));
-      } else if (res.statusCode !== 200) {
-        file.close();
-        fs.rmSync(tarballPath);
-        reject(new Error(`Failed to download: HTTP ${res.statusCode}`));
+  try {
+    // Fetch tarball as JSON (backend returns base64 encoded file)
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    const response = await fetch(tarballUrl, { headers });
+    if (!response.ok) {
+      throw new Error(`Failed to download: HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    
+    // Decode base64 tarball and write to file
+    const tarballBuffer = Buffer.from(data.tarball, 'base64');
+    
+    // Verify checksum if provided
+    if (data.checksum) {
+      const crypto = require('crypto');
+      const actualChecksum = crypto.createHash('sha256').update(tarballBuffer).digest('hex');
+      if (actualChecksum !== data.checksum) {
+        fs.rmSync(tarballPath, { force: true });
+        error('Tarball checksum mismatch. File may be corrupted.');
       }
-      res.pipe(file);
-      file.on('finish', () => {
-        file.close();
-        resolve();
-      });
-    }).on('error', reject);
-  });
+      log(`  ✓ Checksum verified`, 'green');
+    }
+    
+    fs.writeFileSync(tarballPath, tarballBuffer);
+    
+    log(`  📦 Downloaded ${(data.size / 1024 / 1024).toFixed(2)} MB`, 'yellow');
+  } catch (e) {
+    fs.rmSync(tarballPath, { force: true });
+    error(`Download failed: ${e.message}`);
+  }
   
   log(`  📦 Extracting workspace...`, 'cyan');
   
@@ -280,16 +291,22 @@ async function upload() {
     const vChoiceRaw = (await new Promise(r => rlVersion.question('\nVersion choice (1-5): ', r))).trim();
     rlVersion.close();
     
-    // Only accept single digit 1-5
+    // Only accept single digit 1-5, default to 5 (auto-detect)
     const vChoice = vChoiceRaw.length === 1 && vChoiceRaw >= '1' && vChoiceRaw <= '5' ? vChoiceRaw : '5';
     
-    const parts = existingCopy.version.split('.').map(Number);
+    // Safe version parsing with explicit parseInt and NaN handling
+    const versionParts = (existingCopy.version || '1.0.0').split('.').map(p => {
+      const parsed = parseInt(p, 10);
+      return isNaN(parsed) ? 0 : parsed;
+    });
+    const [major, minor, patch] = versionParts;
+    
     switch (vChoice) {
-      case '1': version = `${parts[0]}.${parts[1]}.${(parts[2] || 0) + 1}`; break;
-      case '2': version = `${parts[0]}.${(parts[1] || 0) + 1}.${parts[2] || 0}`; break;
-      case '3': version = `${(parts[0] || 1) + 1}.${parts[1] || 0}.${parts[2] || 0}`; break;
-      case '4': version = null; break;  // Custom version removed - use auto-detect
-      default: version = null;
+      case '1': version = `${major}.${minor}.${patch + 1}`; break;  // Patch bump
+      case '2': version = `${major}.${minor + 1}.${patch}`; break;  // Minor bump
+      case '3': version = `${major + 1}.${minor}.${patch}`; break;  // Major bump
+      case '4': version = null; break;  // Custom version - use auto-detect
+      default: version = null;  // Auto-detect
     }
     log(`\n📦 Version: ${version || 'auto'}, copy: ${copyId}`, 'cyan');
   }
@@ -314,8 +331,9 @@ async function upload() {
   // Upload tarball
   log(`\n⬆️  Uploading workspace...`, 'cyan');
   
-  const tarballContent = fs.readFileSync(tarballPath, 'binary');
-  const base64Content = Buffer.from(tarballContent, 'binary').toString('base64');
+  // Use Buffer directly instead of 'binary' encoding (which is deprecated)
+  const tarballBuffer = fs.readFileSync(tarballPath);
+  const base64Content = tarballBuffer.toString('base64');
 
   const res = await postJson(`${API_BASE}/api/copies`, {
     copyId,

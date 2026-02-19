@@ -760,3 +760,92 @@ async function searchCopies(query) {
     container.innerHTML = '<p>Search failed.</p>';
   }
 }
+
+// ========== COPY MODAL ==========
+async function openCopyModal(copyId) {
+  const copy = await API.getCopy(copyId);
+  if (copy.error) {
+    showNotification('Copy not found');
+    return;
+  }
+  
+  const modal = document.getElementById('copyDetailModal');
+  const modalBody = document.querySelector('#copyDetailModal .modal-body');
+  const installCmd = `clawfactory install ${copy.id}`;
+  const skills = (copy.skills || []).join(', ');
+  const files = Object.keys(copy.files || {});
+  
+  modalBody.innerHTML = `
+    <div class="copy-hero" style="margin-bottom: 24px;">
+      <p class="copy-author">by <a href="/${copy.username}" onclick="navigate('/${copy.username}'); return false;">@${copy.username}</a></p>
+      <h2>${copy.name}</h2>
+      <p class="copy-description">${copy.description || ''}</p>
+      <div class="copy-meta" style="margin-top: 12px;">
+        <span>⭐ ${copy.rating_average || 0}</span>
+        <span>📦 ${copy.install_count || 0}</span>
+        <span>${copy.category || 'undefined'}</span>
+        <span>v${copy.version || '1.0.0'}</span>
+        ${copy.has_memory ? '<span>🧠 Memory</span>' : ''}
+        ${copy.is_private ? '<span>🔒 Private</span>' : ''}
+      </div>
+      ${skills ? `<div class="copy-skills" style="margin-top: 12px;">
+        ${skills.split(', ').map(s => `<span>${s}</span>`).join('')}
+      </div>` : ''}
+    </div>
+    
+    <div class="install-panel" style="background: var(--bg); border: 1px dashed var(--border); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+      <h4 style="margin: 0 0 12px 0; font-size: 0.95rem;">Installation</h4>
+      <div class="install-command-box" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <code style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 0.9rem;">${installCmd}</code>
+        <button class="btn btn-primary" onclick="copyInstallCommand('${copy.id}')">📋 Copy</button>
+      </div>
+    </div>
+    
+    ${files.length > 0 ? `
+    <div style="margin-bottom: 20px;">
+      <h4 style="margin: 0 0 12px 0; font-size: 0.95rem;">Files</h4>
+      <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
+        <code style="font-size: 0.85rem; color: var(--text-secondary);">${files.join('\n')}</code>
+      </div>
+    </div>
+    ` : ''}
+    
+    <div class="copy-actions" style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <button class="btn btn-primary" onclick="copyInstallCommand('${copy.id}'); document.getElementById('copyDetailModal').classList.remove('active');">🚀 Install Now</button>
+      <button class="btn btn-secondary" onclick="rateCopy('${copy.id}')">⭐ Rate</button>
+      <button class="btn btn-secondary" onclick="navigate('/${copy.username}/${copy.id}'); document.getElementById('copyDetailModal').classList.remove('active');">View Full Page →</button>
+    </div>
+  `;
+  
+  modal.classList.add('active');
+}
+
+function closeCopyModal() {
+  document.getElementById('copyDetailModal')?.classList.remove('active');
+}
+
+// Update renderCopyCard to use modal
+const _originalRenderCopyCard = renderCopyCard;
+renderCopyCard = function(copy, isListView = false) {
+  return `<article class="copy-card" onclick="openCopyModal('${copy.id}'); return false;" style="cursor: pointer;">
+    <h3>${copy.name}</h3>
+    <p>${copy.description?.slice(0, 80) || ''}...</p>
+    <div class="copy-meta">
+      <span>⭐ ${copy.rating_average || 0}</span>
+      <span>📦 ${copy.install_count || 0}</span>
+      <span>${copy.category}</span>
+    </div>
+  </article>`;
+};
+
+// Initialize modal close on overlay click
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('copyDetailModal');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal-overlay') || e.target.classList.contains('modal-close')) {
+        closeCopyModal();
+      }
+    });
+  }
+});

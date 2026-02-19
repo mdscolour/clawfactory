@@ -335,7 +335,7 @@ const routes = {
     return { ...copy, skills: parseJson(copy.skills), tags: parseJson(copy.tags), files: parseJson(copy.files), memory: copy.memory, has_memory: copy.has_memory };
   },
 
-  'GET /api/copies/:id/tarball': (req) => {
+  'GET /api/copies/:id/tarball': (req, res) => {
     const copy = getOne('SELECT * FROM copies WHERE id = ?', [req.params.id]);
     if (!copy) return { error: 'Copy not found', status: 404 };
     
@@ -346,12 +346,26 @@ const routes = {
     
     console.log(`[Tarball] Serving: ${tarballPath}`);
     
-    // Read and return the tarball
+    // Read and return the tarball with checksum
     try {
       const tarball = fs.readFileSync(tarballPath);
+      
+      // Validate gzip format (magic bytes: 0x1f 0x8b)
+      const isGzip = tarball.length > 2 && tarball[0] === 0x1f && tarball[1] === 0x8b;
+      if (!isGzip) {
+        console.error('[Tarball] Invalid tarball format (not gzip)');
+        return { error: 'Invalid tarball format', status: 400 };
+      }
+      
+      // Calculate SHA256 checksum for integrity verification
+      const crypto = require('crypto');
+      const checksum = crypto.createHash('sha256').update(tarball).digest('hex');
+      
       return {
         tarball: tarball.toString('base64'),
-        size: tarball.length
+        size: tarball.length,
+        checksum: checksum,
+        format: 'gzip'
       };
     } catch (e) {
       console.error('[Tarball] Error reading tarball:', e.message);
