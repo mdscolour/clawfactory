@@ -184,7 +184,9 @@ function goBack() {
   const currentHash = window.location.hash.slice(1) || '/';
   const parts = currentHash.split('/').filter(Boolean);
   if (currentHash.startsWith('page=')) {
-    navigate('/');
+    // Extract page name and switch to it
+    const pageName = currentHash.replace('page=', '');
+    switchPage(pageName);
   } else if (parts.length >= 2) {
     navigate(`/${parts[0]}`);
   } else if (parts.length === 1 && parts[0]) {
