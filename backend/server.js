@@ -298,10 +298,10 @@ const routes = {
   'GET /health': () => ({ status: 'ok', timestamp: new Date().toISOString() }),
 
   'GET /api/version': () => ({
-    version: '1.0.13',
+    version: '1.0.28',
     name: 'ClawFactory',
     api: '1.0.0',
-    frontend: '1.0.13',
+    frontend: '1.0.28',
     lastUpdated: new Date().toISOString()
   }),
 
