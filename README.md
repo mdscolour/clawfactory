@@ -1,5 +1,7 @@
 # ClawFactory
 
+**Contact**: likunhede@gmail.com
+
 OpenClaw Copy Registry - Share and discover pre-configured OpenClaw copies.
 
 🌐 **Website**: [clawfactory.ai](https://clawfactory.ai)
